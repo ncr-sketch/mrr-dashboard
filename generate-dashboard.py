@@ -43,7 +43,10 @@ REPS = {
 }
 
 SCRIPT_DIR = Path(__file__).parent
+# Try both 'photos' and 'Photos' (Linux is case-sensitive)
 PHOTOS_DIR = SCRIPT_DIR / "photos"
+if not PHOTOS_DIR.exists():
+    PHOTOS_DIR = SCRIPT_DIR / "Photos"
 # ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -164,12 +167,21 @@ def get_photo_data_uri(rep_name):
         return None
 
     first_name = rep_name.split()[0].lower()
-    full_name = rep_name.lower().replace(' ', '-')
+    full_name_hyphen = rep_name.lower().replace(' ', '-')
+    full_name_space = rep_name  # Original casing with spaces (e.g., "Robert Bengtsson")
+    full_name_lower_space = rep_name.lower()  # lowercase with spaces
     # Handle accented characters
-    full_name_clean = full_name.replace('é', 'e').replace('ö', 'o').replace('ä', 'a').replace('ø', 'o').replace('å', 'a')
+    full_name_clean = full_name_hyphen.replace('é', 'e').replace('ö', 'o').replace('ä', 'a').replace('ø', 'o').replace('å', 'a')
     first_name_clean = first_name.replace('é', 'e').replace('ö', 'o').replace('ä', 'a').replace('ø', 'o').replace('å', 'a')
 
-    names_to_try = list(dict.fromkeys([first_name, first_name_clean, full_name, full_name_clean]))
+    names_to_try = list(dict.fromkeys([
+        full_name_space,          # "Robert Bengtsson"
+        full_name_lower_space,    # "robert bengtsson"
+        first_name,               # "robert"
+        first_name_clean,         # "robert" (without accents)
+        full_name_hyphen,         # "robert-bengtsson"
+        full_name_clean,          # "robert-bengtsson" (without accents)
+    ]))
 
     for name in names_to_try:
         for ext in ['jpg', 'jpeg', 'png', 'webp']:
