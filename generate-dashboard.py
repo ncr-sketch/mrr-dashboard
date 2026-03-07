@@ -369,11 +369,13 @@ def generate_html(monthly_mrr, ytd_mrr):
         }}
 
         body.dark-mode .lb-bar-container {{
-            background: #2a2a38;
+            background: linear-gradient(180deg, #111122 0%, #1e1e35 50%, #111122 100%);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,0,0,0.4);
         }}
 
         body.dark-mode .lb-bar-container.over-target {{
-            background: rgba(29, 185, 84, 0.2);
+            background: linear-gradient(180deg, rgba(29,185,84,0.12) 0%, rgba(29,185,84,0.22) 50%, rgba(29,185,84,0.12) 100%);
         }}
 
         /* Theme Toggle */
@@ -793,16 +795,18 @@ def generate_html(monthly_mrr, ytd_mrr):
 
         .lb-bar-container {{
             width: 100%;
-            height: 14px;
-            background: #e8e8e8;
-            border-radius: 7px;
+            height: 22px;
+            background: linear-gradient(180deg, #c8c8c8 0%, #e0e0e0 50%, #c8c8c8 100%);
+            border-radius: 4px;
             overflow: hidden;
             position: relative;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.5);
+            border: 1px solid rgba(0,0,0,0.15);
         }}
 
         .lb-bar-fill {{
             height: 100%;
-            border-radius: 7px;
+            border-radius: 3px;
             transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             position: relative;
             background: linear-gradient(90deg,
@@ -815,11 +819,16 @@ def generate_html(monthly_mrr, ytd_mrr):
                 #1DB954 100%
             );
             background-position: left center;
+            box-shadow:
+                inset 0 -4px 6px rgba(0,0,0,0.4),
+                inset 0 3px 0 rgba(255,255,255,0.55),
+                inset 0 6px 8px rgba(255,255,255,0.15),
+                0 2px 6px rgba(0,0,0,0.5);
         }}
 
         /* Over-target: soft green track */
         .lb-bar-container.over-target {{
-            background: rgba(29, 185, 84, 0.15);
+            background: linear-gradient(180deg, rgba(29,185,84,0.15) 0%, rgba(29,185,84,0.25) 50%, rgba(29,185,84,0.15) 100%);
         }}
 
         /* Over-100% celebration marker */
