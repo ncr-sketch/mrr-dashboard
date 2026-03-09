@@ -324,6 +324,15 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         if rep['pct'] >= 100:
             crown_html = '<span class="crown-emoji">&#128081;</span>'
 
+        # Rank badge class (gold/silver/bronze for top 3)
+        badge_class = 'rank-badge'
+        if rank == 1:
+            badge_class += ' gold'
+        elif rank == 2:
+            badge_class += ' silver'
+        elif rank == 3:
+            badge_class += ' bronze'
+
         # Flame streak indicator
         streak_html = ''
         if rep['streak'] >= 2:
@@ -355,10 +364,10 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         pct_color = get_status_color(rep['pct'])
 
         row = f'''            <div class="{' '.join(classes)}">
-                <div class="lb-rank">{rank}</div>
-                <div class="lb-photo-wrapper">
-                    <div class="lb-photo">{photo_inner}</div>
+                <div class="photo-rank-wrap">
                     {crown_html}
+                    <div class="lb-photo">{photo_inner}</div>
+                    <div class="{badge_class}">{rank}</div>
                 </div>
                 <div class="lb-info">
                     <div class="lb-name-row">
@@ -945,7 +954,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
            ═══════════════════════════════════════════ */
         .lb-row {{
             display: grid;
-            grid-template-columns: 56px 56px 1fr 120px 100px;
+            grid-template-columns: 68px 1fr 120px 100px;
             gap: 16px;
             align-items: center;
             background: var(--surface-raised);
@@ -976,8 +985,8 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
 
         .lb-row.top-3 .lb-photo {{
-            width: 50px;
-            height: 50px;
+            width: 58px;
+            height: 58px;
             border-color: var(--clerk-orange);
         }}
 
@@ -1000,14 +1009,14 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
 
         .lb-row.compact .lb-photo {{
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
         }}
 
-        .lb-row.compact .lb-rank {{
-            width: 36px;
-            height: 36px;
-            font-size: 14px;
+        .lb-row.compact .rank-badge {{
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
         }}
 
         .lb-row.compact .lb-bar-container {{
@@ -1036,8 +1045,8 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             overflow: hidden;
         }}
 
-        /* Photo wrapper for crown positioning */
-        .lb-photo-wrapper {{
+        /* Combined photo + rank badge wrapper */
+        .photo-rank-wrap {{
             position: relative;
             display: flex;
             align-items: center;
@@ -1046,11 +1055,11 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 
         .crown-emoji {{
             position: absolute;
-            top: -10px;
+            top: -12px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 18px;
-            z-index: 2;
+            font-size: 16px;
+            z-index: 3;
             filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
             animation: crownBob 2s ease-in-out infinite;
         }}
@@ -1078,10 +1087,10 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             align-items: center;
         }}
 
-        /* Rep photo */
+        /* Rep photo — enlarged now that rank is merged */
         .lb-photo {{
-            width: 44px;
-            height: 44px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             overflow: hidden;
             background: var(--surface);
@@ -1099,10 +1108,50 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
 
         .lb-photo-initials {{
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--text-tertiary);
             letter-spacing: -0.5px;
+        }}
+
+        /* Rank badge — overlaps bottom-right of photo */
+        .rank-badge {{
+            position: absolute;
+            bottom: -2px;
+            right: -4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--clerk-orange);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            z-index: 2;
+        }}
+
+        /* Metallic badges for top 3 */
+        .rank-badge.gold {{
+            background: linear-gradient(145deg, #FFD700, #FFC107);
+            color: #5C3D00;
+            border-color: #FFD700;
+            box-shadow: 0 1px 6px rgba(255, 215, 0, 0.5);
+        }}
+        .rank-badge.silver {{
+            background: linear-gradient(145deg, #E8E8E8, #C0C0C0);
+            color: #3a3a3a;
+            border-color: #C0C0C0;
+            box-shadow: 0 1px 6px rgba(192, 192, 192, 0.5);
+        }}
+        .rank-badge.bronze {{
+            background: linear-gradient(145deg, #E08A4A, #CD7F32);
+            color: #3D2200;
+            border-color: #CD7F32;
+            box-shadow: 0 1px 6px rgba(205, 127, 50, 0.5);
         }}
 
         .lb-row:hover {{
@@ -1113,49 +1162,6 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         .lb-row.below-target {{
             border-left-color: var(--red);
             opacity: 0.7;
-        }}
-
-        .lb-rank {{
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            border-radius: var(--radius-sm);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--clerk-orange);
-            background: var(--clerk-orange-bg);
-        }}
-
-        /* Top 3 metallic rank badges */
-        .lb-row.top-3:nth-child(1) .lb-rank {{
-            background: linear-gradient(145deg, #FFD700, #FFC107, #FFB300);
-            color: #5C3D00;
-            border: 2px solid #FFD700;
-            box-shadow: 0 0 12px rgba(255, 215, 0, 0.5), 0 0 24px rgba(255, 215, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            font-size: 20px;
-        }}
-
-        .lb-row.top-3:nth-child(2) .lb-rank {{
-            background: linear-gradient(145deg, #E8E8E8, #C0C0C0, #A8A8A8);
-            color: #3a3a3a;
-            border: 2px solid #C0C0C0;
-            box-shadow: 0 0 12px rgba(192, 192, 192, 0.5), 0 0 24px rgba(192, 192, 192, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-            font-size: 20px;
-        }}
-
-        .lb-row.top-3:nth-child(3) .lb-rank {{
-            background: linear-gradient(145deg, #E08A4A, #CD7F32, #B8702D);
-            color: #3D2200;
-            border: 2px solid #CD7F32;
-            box-shadow: 0 0 12px rgba(205, 127, 50, 0.5), 0 0 24px rgba(205, 127, 50, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            font-size: 20px;
-        }}
-
-        .lb-row.below-target .lb-rank {{
-            color: var(--red);
-            background: var(--red-bg);
         }}
 
         .lb-info {{
@@ -1692,6 +1698,12 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 
             const crownHtml = rep.pct >= 100 ? '<span class="crown-emoji">&#128081;</span>' : '';
 
+            // Rank badge class (gold/silver/bronze for top 3)
+            let badgeClass = 'rank-badge';
+            if (rank === 1) badgeClass += ' gold';
+            else if (rank === 2) badgeClass += ' silver';
+            else if (rank === 3) badgeClass += ' bronze';
+
             // Streak only shown for current month
             let streakHtml = '';
             // (streaks are real-time only, skip for historical)
@@ -1721,8 +1733,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             row.className = classes.join(' ');
             row.style.animationDelay = (0.05 * rank) + 's';
             row.innerHTML =
-                '<div class="lb-rank">' + rank + '</div>' +
-                '<div class="lb-photo-wrapper"><div class="lb-photo">' + photoInner + '</div>' + crownHtml + '</div>' +
+                '<div class="photo-rank-wrap">' + crownHtml + '<div class="lb-photo">' + photoInner + '</div><div class="' + badgeClass + '">' + rank + '</div></div>' +
                 '<div class="lb-info"><div class="lb-name-row"><span class="lb-name">' + rep.name + '</span>' + streakHtml + '</div>' +
                 '<div class="' + barContainerClass + '"><div class="lb-bar-fill' + shimmerClass + '" style="' + barStyle + '"></div></div></div>' +
                 '<div class="lb-mrr"><div class="lb-mrr-amount">' + formatAmount(rep.mrr) + '</div><div class="lb-mrr-target">of ' + formatAmount(rep.target) + '</div></div>' +
