@@ -232,7 +232,7 @@ def get_status_color(percent):
     return 'var(--red)'
 
 
-def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info):
+def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json):
     """Generate the complete dashboard HTML with all CSS and data."""
     today = date.today()
     now = datetime.now()
@@ -400,6 +400,9 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 
     # ── Hero value color ──
     hero_color = get_status_color(achieved_pct)
+
+    # ── Pre-compute REPS_CONFIG JSON (can't use json.dumps inside f-string) ──
+    reps_config_json = json.dumps({uid: {'name': r['name'], 'initials': r['initials'], 'target': r['target']} for uid, r in REPS.items()})
 
     html = f'''<!DOCTYPE html>
 <html lang="en">
@@ -884,6 +887,51 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             padding: 10px 24px;
             border-radius: 24px;
             letter-spacing: 0.5px;
+        }}
+
+        .month-selector {{
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--clerk-orange);
+            background: var(--clerk-orange-bg);
+            padding: 10px 20px;
+            border-radius: 24px;
+            border: 2px solid var(--clerk-orange);
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23FF5C28' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            transition: all 0.2s ease;
+        }}
+
+        .month-selector:hover {{
+            box-shadow: 0 0 12px rgba(255, 92, 40, 0.25);
+        }}
+
+        .month-selector option {{
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            background: var(--surface-raised);
+            color: var(--text-primary);
+        }}
+
+        .month-selector-note {{
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: -4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }}
+
+        .month-selector-note.visible {{
+            opacity: 1;
         }}
 
         .leaderboard-list {{
@@ -1408,7 +1456,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         <div class="leaderboard-card">
             <div class="leaderboard-header">
                 <div class="leaderboard-title">Monthly MRR Leaderboard</div>
-                <div class="leaderboard-month">{current_month}</div>
+                <select id="monthSelector" class="month-selector"></select>
             </div>
 
             <div class="leaderboard-list">
@@ -1443,6 +1491,16 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 </button>
 
 <script>
+    // ═══════════════════════════════════════════════════════════════
+    // EMBEDDED DATA — all YTD opportunities + rep config for JS
+    // ═══════════════════════════════════════════════════════════════
+    const ALL_OPPS = {all_ytd_opps_json};
+    const REP_PHOTOS = {rep_photos_json};
+    const REPS_CONFIG = {reps_config_json};
+    const CURRENT_YEAR = {today.year};
+    const CURRENT_MONTH = {today.month};
+    const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
     // ── Dark mode toggle ──
     const themeToggle = document.getElementById('themeToggle');
     const prefersDark = localStorage.getItem('clerk-dash-theme') === 'dark';
@@ -1468,7 +1526,229 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
     updateClock();
     setInterval(updateClock, 1000);
 
-    // ── Count-up animations ──
+    // ── Utility functions ──
+    function formatAmount(v) {{
+        return v.toLocaleString('en-US', {{minimumFractionDigits: 2, maximumFractionDigits: 2}});
+    }}
+    function formatCurrency(v) {{
+        return 'DKK ' + formatAmount(v);
+    }}
+    function getStatusColor(pct) {{
+        if (pct >= 100) return 'var(--green)';
+        if (pct >= 50) return 'var(--yellow-dark)';
+        return 'var(--red)';
+    }}
+    function calcMrr(opp) {{
+        const value = (opp.value || 0) / 100;
+        const period = opp.value_period || 'monthly';
+        if (period === 'annual') return value / 12;
+        return value;
+    }}
+    function getCloseDate(opp) {{
+        return opp.close_date || opp.date_won || opp.close_at || '';
+    }}
+
+    // ── Populate month selector ──
+    const selector = document.getElementById('monthSelector');
+    const startYear = CURRENT_YEAR;
+    // Show Jan of current year through current month
+    for (let m = CURRENT_MONTH; m >= 1; m--) {{
+        const opt = document.createElement('option');
+        opt.value = startYear + '-' + String(m).padStart(2, '0');
+        opt.textContent = MONTH_NAMES[m - 1] + ' ' + startYear;
+        if (m === CURRENT_MONTH) opt.selected = true;
+        selector.appendChild(opt);
+    }}
+
+    // ── Month switch logic ──
+    selector.addEventListener('change', () => {{
+        const [year, month] = selector.value.split('-').map(Number);
+        renderMonth(year, month);
+    }});
+
+    function renderMonth(year, month) {{
+        const monthStart = year + '-' + String(month).padStart(2, '0') + '-01';
+        let monthEnd;
+        if (month === 12) {{
+            monthEnd = (year + 1) + '-01-01';
+        }} else {{
+            monthEnd = year + '-' + String(month + 1).padStart(2, '0') + '-01';
+        }}
+
+        // Filter opps for this month
+        const monthOpps = ALL_OPPS.filter(opp => {{
+            const cd = getCloseDate(opp).substring(0, 10);
+            return cd >= monthStart && cd < monthEnd;
+        }});
+
+        // Aggregate by rep
+        const repMrr = {{}};
+        const repDeals = {{}};
+        for (const opp of monthOpps) {{
+            const uid = opp.user_id;
+            if (!uid || !REPS_CONFIG[uid]) continue;
+            repMrr[uid] = (repMrr[uid] || 0) + calcMrr(opp);
+            repDeals[uid] = (repDeals[uid] || 0) + 1;
+        }}
+
+        // Build sorted rep data
+        const repData = Object.entries(REPS_CONFIG).map(([uid, rep]) => ({{
+            uid,
+            name: rep.name,
+            initials: rep.initials,
+            target: rep.target,
+            mrr: repMrr[uid] || 0,
+            pct: rep.target > 0 ? ((repMrr[uid] || 0) / rep.target * 100) : 0,
+            deals: repDeals[uid] || 0
+        }}));
+        repData.sort((a, b) => b.pct - a.pct);
+
+        // ── Update hero card ──
+        const totalMrr = repData.reduce((s, r) => s + r.mrr, 0);
+        const totalTarget = repData.reduce((s, r) => s + r.target, 0);
+        const achievedPct = totalTarget > 0 ? (totalMrr / totalTarget * 100) : 0;
+        const onTrack = repData.filter(r => r.mrr >= r.target).length;
+
+        document.querySelector('.hero-value').textContent = formatCurrency(totalMrr);
+        document.querySelector('.hero-value').style.color = 'var(--green)';
+        document.querySelector('.hero-change span').textContent = Math.round(achievedPct) + '%';
+
+        // ── Update summary tiles ──
+        const tiles = document.querySelectorAll('.summary-tile-value');
+        tiles[0].textContent = formatAmount(totalTarget);
+        tiles[1].textContent = Math.round(achievedPct) + '%';
+        tiles[1].style.color = getStatusColor(achievedPct);
+        tiles[2].textContent = onTrack + '/' + repData.length;
+        tiles[2].style.color = getStatusColor((onTrack / repData.length) * 100);
+
+        // ── Update countdown ──
+        const isCurrentMonth = (year === CURRENT_YEAR && month === CURRENT_MONTH);
+        const countdownCard = document.querySelector('.countdown-card');
+        if (isCurrentMonth) {{
+            const today = new Date();
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const daysLeft = Math.max(daysInMonth - today.getDate(), 1);
+            const remaining = Math.max(totalTarget - totalMrr, 0);
+            const pacePerDay = remaining / daysLeft;
+            countdownCard.querySelector('.countdown-number').textContent = daysLeft;
+            countdownCard.querySelector('.countdown-label').innerHTML = '<strong>days left</strong><br>in ' + MONTH_NAMES[month - 1];
+            countdownCard.querySelector('.pace-indicator').innerHTML = 'Team needs <strong>' + formatCurrency(pacePerDay) + '/day</strong> to hit target';
+        }} else {{
+            const gap = totalMrr - totalTarget;
+            countdownCard.querySelector('.countdown-number').textContent = Math.round(achievedPct) + '%';
+            countdownCard.querySelector('.countdown-label').innerHTML = '<strong>achieved</strong><br>in ' + MONTH_NAMES[month - 1];
+            if (gap >= 0) {{
+                countdownCard.querySelector('.pace-indicator').innerHTML = 'Team exceeded target by <strong>' + formatCurrency(gap) + '</strong>';
+            }} else {{
+                countdownCard.querySelector('.pace-indicator').innerHTML = 'Team was <strong>' + formatCurrency(Math.abs(gap)) + '</strong> short of target';
+            }}
+        }}
+
+        // ── Update ticker ──
+        const tickerEl = document.querySelector('.deal-ticker');
+        if (tickerEl) {{
+            // Get last 3 deals for this month
+            const sorted = [...monthOpps].sort((a, b) => {{
+                const da = (a.date_updated || a.date_created || getCloseDate(a));
+                const db = (b.date_updated || b.date_created || getCloseDate(b));
+                return db.localeCompare(da);
+            }});
+            const last3 = sorted.slice(0, 3);
+            if (last3.length > 0) {{
+                let items = '';
+                for (const deal of last3) {{
+                    const repName = REPS_CONFIG[deal.user_id] ? REPS_CONFIG[deal.user_id].name : 'Unknown';
+                    const company = deal.lead_name || 'Unknown';
+                    const value = calcMrr(deal);
+                    items += '<div class="ticker-item">' +
+                        '<span class="ticker-icon">&#127881;</span>' +
+                        '<span class="ticker-rep">' + repName + '</span> closed ' +
+                        '<span class="ticker-company">' + company + '</span> for ' +
+                        '<span class="ticker-value">' + formatCurrency(value) + '</span>' +
+                        '<span class="ticker-sep"></span></div>';
+                }}
+                tickerEl.querySelector('.ticker-track').innerHTML = items + items;
+                tickerEl.style.display = 'flex';
+            }} else {{
+                tickerEl.style.display = 'none';
+            }}
+        }}
+
+        // ── Rebuild leaderboard rows ──
+        const listEl = document.querySelector('.leaderboard-list');
+        listEl.innerHTML = '';
+        repData.forEach((rep, i) => {{
+            const rank = i + 1;
+            const classes = ['lb-row'];
+            if (rep.pct >= 100) classes.push('target-achieved');
+            if (rep.pct < 50) classes.push('below-target');
+            else if (rank <= 3) classes.push('top-3');
+            if (rank > 5) classes.push('compact');
+
+            const photoUri = REP_PHOTOS[rep.name] || '';
+            const photoInner = photoUri
+                ? '<img src="' + photoUri + '" alt="' + rep.name + '">'
+                : '<span class="lb-photo-initials">' + rep.initials + '</span>';
+
+            const crownHtml = rep.pct >= 100 ? '<span class="crown-emoji">&#128081;</span>' : '';
+
+            // Streak only shown for current month
+            let streakHtml = '';
+            // (streaks are real-time only, skip for historical)
+
+            const displayPct = Math.min(rep.pct, 100);
+            const isOver = rep.pct >= 100;
+            const barContainerClass = isOver ? 'lb-bar-container over-target' : 'lb-bar-container';
+
+            let shimmerClass = '';
+            if (rep.pct >= 100) shimmerClass = ' shimmer-100';
+            else if (rep.pct >= 75) shimmerClass = ' shimmer-75';
+            else if (rep.pct >= 50) shimmerClass = ' shimmer-50';
+
+            let barStyle;
+            if (isOver) {{
+                barStyle = 'width:100%;background:linear-gradient(90deg,#5CB854 0%,#1DB954 40%,#17a34a 100%);background-size:100% 100%;';
+            }} else if (displayPct > 0) {{
+                const bgSize = (100 / displayPct) * 100;
+                barStyle = 'width:' + displayPct.toFixed(1) + '%;background-size:' + bgSize.toFixed(1) + '% 100%;';
+            }} else {{
+                barStyle = 'width:0%;';
+            }}
+
+            const pctColor = getStatusColor(rep.pct);
+
+            const row = document.createElement('div');
+            row.className = classes.join(' ');
+            row.style.animationDelay = (0.05 * rank) + 's';
+            row.innerHTML =
+                '<div class="lb-rank">' + rank + '</div>' +
+                '<div class="lb-photo-wrapper"><div class="lb-photo">' + photoInner + '</div>' + crownHtml + '</div>' +
+                '<div class="lb-info"><div class="lb-name-row"><span class="lb-name">' + rep.name + '</span>' + streakHtml + '</div>' +
+                '<div class="' + barContainerClass + '"><div class="lb-bar-fill' + shimmerClass + '" style="' + barStyle + '"></div></div></div>' +
+                '<div class="lb-mrr"><div class="lb-mrr-amount">' + formatAmount(rep.mrr) + '</div><div class="lb-mrr-target">of ' + formatAmount(rep.target) + '</div></div>' +
+                '<div class="lb-pct"><div class="lb-pct-value" style="color:' + pctColor + ';">' + Math.round(rep.pct) + '%</div><div class="lb-pct-label">Target</div></div>';
+            listEl.appendChild(row);
+
+            // Add confetti for achieved rows
+            if (rep.pct >= 100) {{
+                row.style.position = 'relative';
+                row.style.overflow = 'hidden';
+                const colors = ['#FFD700', '#FF5C28', '#1DB954', '#FF7A52', '#FFC107', '#E04040'];
+                for (let c = 0; c < 12; c++) {{
+                    const piece = document.createElement('div');
+                    piece.className = 'confetti-piece';
+                    piece.style.left = Math.random() * 100 + '%';
+                    piece.style.top = '-10px';
+                    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.animationDelay = (Math.random() * 3) + 's';
+                    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    row.appendChild(piece);
+                }}
+            }}
+        }});
+    }}
+
+    // ── Count-up animations (initial load only) ──
     function animateCountUp(el, target, suffix, prefix, duration) {{
         const start = 0;
         const startTime = performance.now();
@@ -1476,7 +1756,6 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         function update(currentTime) {{
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            // Ease-out cubic
             const eased = 1 - Math.pow(1 - progress, 3);
             const current = start + (target - start) * eased;
 
@@ -1495,25 +1774,20 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         requestAnimationFrame(update);
     }}
 
-    // Animate all data-countup elements
     document.querySelectorAll('[data-countup]').forEach(el => {{
         const target = parseFloat(el.getAttribute('data-countup'));
         animateCountUp(el, target, '', '', 1500);
     }});
-
-    // Animate percentage elements
     document.querySelectorAll('[data-countup-pct]').forEach(el => {{
         const target = parseFloat(el.getAttribute('data-countup-pct'));
         animateCountUp(el, target, '%', '', 1500);
     }});
-
-    // Animate currency elements
     document.querySelectorAll('[data-countup-currency]').forEach(el => {{
         const target = parseFloat(el.getAttribute('data-countup-currency'));
         animateCountUp(el, target, '', 'DKK ', 1800);
     }});
 
-    // ── Confetti burst for target achievers ──
+    // ── Confetti burst for initial load ──
     document.querySelectorAll('.lb-row.target-achieved').forEach(row => {{
         row.style.position = 'relative';
         row.style.overflow = 'hidden';
@@ -1590,12 +1864,35 @@ def main():
                     'value': d_value,
                 })
 
+            # Prepare JSON data for client-side month switching
+            # Only include fields the JS needs to keep the HTML size reasonable
+            ytd_opps_slim = []
+            for opp in ytd_opps:
+                ytd_opps_slim.append({
+                    'user_id': opp.get('user_id', ''),
+                    'value': opp.get('value', 0) or 0,
+                    'value_period': opp.get('value_period', 'monthly'),
+                    'close_date': get_close_date(opp) or '',
+                    'lead_name': opp.get('lead_name', 'Unknown'),
+                    'date_updated': opp.get('date_updated', ''),
+                    'date_created': opp.get('date_created', ''),
+                })
+            all_ytd_opps_json = json.dumps(ytd_opps_slim)
+
+            # Photo URIs keyed by rep name
+            rep_photos = {}
+            for uid, rep in REPS.items():
+                photo_uri = get_photo_data_uri(rep['name'])
+                if photo_uri:
+                    rep_photos[rep['name']] = photo_uri
+            rep_photos_json = json.dumps(rep_photos)
+
             # Log totals
             total = sum(monthly_mrr.get(uid, 0) for uid in REPS)
             print(f"  Total monthly MRR: DKK {total:,.2f}")
 
             # Generate HTML
-            html = generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info)
+            html = generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json)
 
             # Write to file
             output_path = SCRIPT_DIR / "clerk-mrr-dashboard-live.html"
