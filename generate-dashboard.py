@@ -169,20 +169,17 @@ def count_deals_by_rep(opps):
     return counts
 
 
-def get_last_deal(opps):
-    """Get the most recently closed deal from the list of opportunities."""
-    best = None
-    best_date = ''
+def get_recent_deals(opps, count=3):
+    """Get the most recently closed deals from the list of opportunities."""
+    scored = []
     for opp in opps:
         close_date = get_close_date(opp)
         if not close_date:
             continue
-        # Also check date_updated or date_created for more precise ordering
         updated = opp.get('date_updated', '') or opp.get('date_created', '') or close_date
-        if updated > best_date:
-            best_date = updated
-            best = opp
-    return best
+        scored.append((updated, opp))
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [opp for _, opp in scored[:count]]
 
 
 def get_photo_data_uri(rep_name):
@@ -235,7 +232,7 @@ def get_status_color(percent):
     return 'var(--red)'
 
 
-def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, last_deal_info):
+def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info):
     """Generate the complete dashboard HTML with all CSS and data."""
     today = date.today()
     now = datetime.now()
@@ -260,22 +257,29 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, last_deal_i
     remaining = max(total_target - total_mrr, 0)
     pace_per_day = remaining / days_left if days_left > 0 else 0
 
-    # ── Last deal info ──
-    last_deal_html = ''
-    if last_deal_info:
-        ld_rep = last_deal_info.get('rep_name', 'Unknown')
-        ld_company = last_deal_info.get('lead_name', 'Unknown')
-        ld_value = last_deal_info.get('value', 0)
-        last_deal_html = f'''
+    # ── Latest wins ticker (last 3 deals, duplicated for seamless loop) ──
+    ticker_html = ''
+    if recent_deals_info:
+        ticker_items = ''
+        for deal in recent_deals_info:
+            d_rep = deal.get('rep_name', 'Unknown')
+            d_company = deal.get('lead_name', 'Unknown')
+            d_value = deal.get('value', 0)
+            ticker_items += f'''
+                <div class="ticker-item">
+                    <span class="ticker-icon">&#127881;</span>
+                    <span class="ticker-rep">{d_rep}</span> closed
+                    <span class="ticker-company">{d_company}</span> for
+                    <span class="ticker-value">{format_currency(d_value)}</span>
+                    <span class="ticker-sep"></span>
+                </div>'''
+        # Duplicate the items for seamless infinite scroll
+        ticker_html = f'''
     <div class="deal-ticker">
-        <div class="deal-ticker-inner">
-            <div class="deal-ticker-icon">&#127881;</div>
-            <div class="deal-ticker-text">
-                <span class="deal-ticker-label">LATEST WIN</span>
-                <span class="deal-ticker-rep">{ld_rep}</span> closed
-                <span class="deal-ticker-company">{ld_company}</span>
-                for <span class="deal-ticker-value">{format_currency(ld_value)}</span>
-            </div>
+        <div class="ticker-label">LATEST WINS</div>
+        <div class="ticker-track">
+            {ticker_items}
+            {ticker_items}
         </div>
     </div>'''
 
@@ -518,70 +522,89 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, last_deal_i
         }}
 
         /* ═══════════════════════════════════════════
-           DEAL TICKER — slides in from right
+           DEAL TICKER — continuous scrolling news ticker
            ═══════════════════════════════════════════ */
         .deal-ticker {{
             background: linear-gradient(135deg, var(--green-bg), var(--surface));
             border: 2px solid var(--green);
             border-radius: var(--radius-md);
-            padding: 14px 24px;
             margin-bottom: 20px;
             overflow: hidden;
-            animation: tickerSlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-        }}
-
-        @keyframes tickerSlideIn {{
-            from {{ opacity: 0; transform: translateX(100px); }}
-            to {{ opacity: 1; transform: translateX(0); }}
-        }}
-
-        .deal-ticker-inner {{
+            position: relative;
+            height: 56px;
             display: flex;
             align-items: center;
-            gap: 14px;
         }}
 
-        .deal-ticker-icon {{
-            font-size: 28px;
-            animation: tickerBounce 2s ease-in-out infinite;
+        .ticker-label {{
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 18px;
+            background: var(--green);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            z-index: 2;
+            white-space: nowrap;
+            border-radius: 10px 0 0 10px;
         }}
 
-        @keyframes tickerBounce {{
-            0%, 100% {{ transform: scale(1); }}
-            50% {{ transform: scale(1.2); }}
+        .ticker-track {{
+            display: flex;
+            animation: tickerScroll 22s linear infinite;
+            padding-left: 140px;
         }}
 
-        .deal-ticker-text {{
-            font-size: 15px;
+        @keyframes tickerScroll {{
+            0% {{ transform: translateX(0); }}
+            100% {{ transform: translateX(-50%); }}
+        }}
+
+        .ticker-item {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 40px;
+            white-space: nowrap;
+            font-size: 14px;
             font-weight: 500;
             color: var(--text-primary);
         }}
 
-        .deal-ticker-label {{
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            color: var(--green);
-            background: var(--green-bg);
-            padding: 3px 10px;
-            border-radius: 4px;
-            margin-right: 10px;
-            vertical-align: middle;
+        .ticker-icon {{ font-size: 20px; }}
+        .ticker-rep {{ font-weight: 700; color: var(--clerk-orange); }}
+        .ticker-company {{ font-weight: 700; }}
+        .ticker-value {{ font-weight: 800; color: var(--green); }}
+
+        .ticker-sep {{
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            margin: 0 12px;
+            flex-shrink: 0;
         }}
 
-        .deal-ticker-rep {{
-            font-weight: 700;
-            color: var(--clerk-orange);
+        /* Fade-out on right edge */
+        .deal-ticker::after {{
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 60px;
+            background: linear-gradient(90deg, transparent, var(--surface));
+            z-index: 1;
+            border-radius: 0 10px 10px 0;
         }}
 
-        .deal-ticker-company {{
-            font-weight: 700;
-            color: var(--text-primary);
-        }}
-
-        .deal-ticker-value {{
-            font-weight: 800;
-            color: var(--green);
+        body.dark-mode .deal-ticker::after {{
+            background: linear-gradient(90deg, transparent, var(--bg));
         }}
 
         .live-indicator {{
@@ -1323,7 +1346,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, last_deal_i
 </head>
 <body>
 
-{last_deal_html}
+{ticker_html}
 
 <div class="layout">
     <!-- Left Panel -->
@@ -1553,26 +1576,26 @@ def main():
             monthly_mrr = aggregate_by_rep(monthly_opps)
             ytd_mrr = aggregate_by_rep(ytd_opps)
 
-            # Last deal closed (most recent in current month)
-            last_deal = get_last_deal(monthly_opps)
-            last_deal_info = None
-            if last_deal:
-                ld_user_id = last_deal.get('user_id', '')
-                ld_rep_name = REPS.get(ld_user_id, {}).get('name', 'Unknown')
-                ld_lead_name = last_deal.get('lead_name', 'Unknown')
-                ld_value = calculate_mrr(last_deal)
-                last_deal_info = {
-                    'rep_name': ld_rep_name,
-                    'lead_name': ld_lead_name,
-                    'value': ld_value,
-                }
+            # Recent deals (last 3 for the scrolling ticker)
+            recent_deals = get_recent_deals(monthly_opps, count=3)
+            recent_deals_info = []
+            for deal in recent_deals:
+                d_user_id = deal.get('user_id', '')
+                d_rep_name = REPS.get(d_user_id, {}).get('name', 'Unknown')
+                d_lead_name = deal.get('lead_name', 'Unknown')
+                d_value = calculate_mrr(deal)
+                recent_deals_info.append({
+                    'rep_name': d_rep_name,
+                    'lead_name': d_lead_name,
+                    'value': d_value,
+                })
 
             # Log totals
             total = sum(monthly_mrr.get(uid, 0) for uid in REPS)
             print(f"  Total monthly MRR: DKK {total:,.2f}")
 
             # Generate HTML
-            html = generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, last_deal_info)
+            html = generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info)
 
             # Write to file
             output_path = SCRIPT_DIR / "clerk-mrr-dashboard-live.html"
