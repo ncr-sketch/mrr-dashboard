@@ -1030,7 +1030,9 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
 
     function switchTab(metric) {{
         document.querySelectorAll('.metric-tab').forEach(t => t.classList.remove('active'));
-        event.target.closest('.metric-tab').classList.add('active');
+        const tabs = document.querySelectorAll('.metric-tab');
+        const tabIndex = metric === 'calls' ? 0 : (metric === 'duration' ? 1 : 2);
+        tabs[tabIndex].classList.add('active');
         document.getElementById('boardTitle').textContent = tabConfig[metric].title;
         document.getElementById('boardSubtitle').innerHTML = tabConfig[metric].subtitle;
 
@@ -1123,6 +1125,14 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             row.appendChild(piece);
         }}
     }});
+
+    // ── Auto-rotate tabs every 10 seconds ──
+    const metricCycle = ['calls', 'duration', 'emails'];
+    let currentTabIndex = 0;
+    setInterval(() => {{
+        currentTabIndex = (currentTabIndex + 1) % metricCycle.length;
+        switchTab(metricCycle[currentTabIndex]);
+    }}, 10000);
 </script>
 
 </body>
