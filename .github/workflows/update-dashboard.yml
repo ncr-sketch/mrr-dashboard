@@ -1,9 +1,12 @@
 name: Update Dashboards
 
 on:
+  # Run every 5 minutes
   schedule:
     - cron: '*/5 * * * *'
+  # Also allow manual trigger
   workflow_dispatch:
+  # Also run on push (to deploy immediately)
   push:
     branches: [main]
 
@@ -46,6 +49,8 @@ jobs:
           mkdir -p _site
           cp clerk-mrr-dashboard-live.html _site/index.html
           cp activity-dashboard.html _site/activity.html
+          cp rotator.html _site/rotator.html
+          # Copy photos if they exist
           if [ -d photos ]; then
             cp -r photos _site/photos
           fi
