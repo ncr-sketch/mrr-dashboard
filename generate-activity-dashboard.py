@@ -21,6 +21,7 @@ import urllib.parse
 import sys
 import os
 import time
+import random
 from datetime import datetime, date, timedelta
 from pathlib import Path
 
@@ -275,35 +276,79 @@ def build_ticker_items(calls, emails, rep_stats):
             'lead': lead_name,
         })
 
-    # Build milestone ticker items
+    # Get recent sent emails, sorted by date_created descending
+    recent_emails = [
+        e for e in emails
+        if e.get('user_id') in REPS and e.get('direction', '') == 'outgoing'
+    ]
+    recent_emails.sort(key=lambda x: x.get('date_created', ''), reverse=True)
+    recent_emails = recent_emails[:10]  # Limit to 10 for ticker
+
+    # Fetch lead names for emails (reuse any already fetched)
+    email_lead_ids = [e.get('lead_id') for e in recent_emails if e.get('lead_id') and e.get('lead_id') not in lead_names]
+    if email_lead_ids:
+        email_lead_names = fetch_lead_names(email_lead_ids)
+        lead_names.update(email_lead_names)
+
+    # Build email ticker items
+    for email in recent_emails:
+        user_id = email.get('user_id')
+        rep_name = REPS[user_id]['name']
+        lead_id = email.get('lead_id')
+        lead_name = lead_names.get(lead_id, 'a client')
+        ticker_items.append({
+            'type': 'email',
+            'rep': rep_name,
+            'lead': lead_name,
+        })
+
+    # Interleave calls and emails by mixing them
+    random.shuffle(ticker_items)
+
+    # Build milestone ticker items (add after shuffle so milestones are sprinkled in)
+    milestone_items = []
     for user_id, stats in rep_stats.items():
         rep_name = REPS[user_id]['name']
         duration_min = stats['duration_seconds'] // 60
 
         # Check each metric for milestone
         if stats['calls'] >= TARGETS['calls']['green']:
-            ticker_items.append({
+            milestone_items.append({
                 'type': 'milestone',
                 'rep': rep_name,
                 'metric': 'calls',
                 'target': TARGETS['calls']['green'],
             })
         if duration_min >= TARGETS['duration']['green']:
-            ticker_items.append({
+            milestone_items.append({
                 'type': 'milestone',
                 'rep': rep_name,
                 'metric': 'duration',
                 'target': TARGETS['duration']['green'],
             })
         if stats['emails'] >= TARGETS['emails']['green']:
-            ticker_items.append({
+            milestone_items.append({
                 'type': 'milestone',
                 'rep': rep_name,
                 'metric': 'emails',
                 'target': TARGETS['emails']['green'],
             })
 
-    return ticker_items
+    # Sprinkle milestones evenly into the shuffled activity items
+    combined = []
+    if ticker_items and milestone_items:
+        step = max(1, len(ticker_items) // (len(milestone_items) + 1))
+        mi = 0
+        for i, item in enumerate(ticker_items):
+            combined.append(item)
+            if mi < len(milestone_items) and (i + 1) % step == 0:
+                combined.append(milestone_items[mi])
+                mi += 1
+        combined.extend(milestone_items[mi:])
+    else:
+        combined = ticker_items + milestone_items
+
+    return combined
 
 
 def get_countdown(value, metric):
@@ -331,6 +376,13 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             <span class="ticker-icon">📞</span>
             <span class="ticker-name">{item['rep']}</span> just finished a
             <span class="ticker-highlight">{item['duration']}m call</span> with {item['lead']}
+            <span class="ticker-sep"></span>
+        </div>
+'''
+        elif item['type'] == 'email':
+            ticker_html_items += f'''        <div class="ticker-item">
+            <span class="ticker-icon">&#9993;</span>
+            <span class="ticker-name">{item['rep']}</span> sent an email to {item['lead']}
             <span class="ticker-sep"></span>
         </div>
 '''
