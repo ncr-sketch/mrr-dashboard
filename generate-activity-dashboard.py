@@ -641,10 +641,34 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             color: var(--text-primary);
             background: var(--surface-raised);
         }}
+        @keyframes shimmerSweep {{
+            0% {{ background-position: 200% 0; }}
+            100% {{ background-position: -200% 0; }}
+        }}
         .metric-tab.active {{
             background: var(--surface-raised);
-            color: var(--clerk-orange);
-            box-shadow: var(--shadow-sm);
+            color: var(--green);
+            border: 1.5px solid rgba(29, 185, 84, 0.5);
+            box-shadow: 0 0 14px rgba(29, 185, 84, 0.2), var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }}
+        .metric-tab.active::after {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(29, 185, 84, 0.12) 45%,
+                rgba(29, 185, 84, 0.25) 50%,
+                rgba(29, 185, 84, 0.12) 55%,
+                transparent 100%
+            );
+            background-size: 200% 100%;
+            animation: shimmerSweep 2.5s ease-in-out infinite;
+            border-radius: var(--radius-sm);
+            pointer-events: none;
         }}
         .metric-tab .tab-icon {{ margin-right: 6px; }}
 
