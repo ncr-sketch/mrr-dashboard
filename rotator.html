@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clerk.io — Dashboard Rotator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #121218; }
+        iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: none;
+            transition: opacity 0.8s ease;
+        }
+        iframe.hidden { opacity: 0; pointer-events: none; }
+        iframe.visible { opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body>
+
+<iframe id="frame-a" class="visible" src="index.html"></iframe>
+<iframe id="frame-b" class="hidden" src="activity.html"></iframe>
+
+<script>
+    const frameA = document.getElementById('frame-a');
+    const frameB = document.getElementById('frame-b');
+    const pages = ['index.html', 'activity.html'];
+    let current = 0;       // 0 = MRR (frame-a), 1 = Activity (frame-b)
+    let activeFrame = frameA;
+    let hiddenFrame = frameB;
+
+    // Rotate every 30 seconds
+    const ROTATE_INTERVAL = 30000;
+
+    setInterval(() => {
+        current = (current + 1) % pages.length;
+
+        // Pre-load next page in hidden frame, then crossfade
+        hiddenFrame.src = pages[current];
+        hiddenFrame.onload = () => {
+            activeFrame.classList.remove('visible');
+            activeFrame.classList.add('hidden');
+            hiddenFrame.classList.remove('hidden');
+            hiddenFrame.classList.add('visible');
+
+            // Swap references
+            const temp = activeFrame;
+            activeFrame = hiddenFrame;
+            hiddenFrame = temp;
+        };
+    }, ROTATE_INTERVAL);
+</script>
+
+</body>
+</html>
