@@ -380,8 +380,11 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         # Check if all green
         all_green = (calls_status == 'green' and duration_status == 'green' and emails_status == 'green')
 
-        # Classes
+        # Classes — default view is calls, so target-hit if calls target met
+        calls_hit = calls_status == 'green'
         classes = ['lb-row']
+        if calls_hit:
+            classes.append('target-hit')
         if all_green:
             classes.append('all-green')
         if rank <= 3:
@@ -396,9 +399,9 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         else:
             photo_inner = f'<span class="lb-photo-initials">{rep["initials"]}</span>'
 
-        # Crown for all-green
+        # Crown for target hit on current metric (calls default)
         crown_html = ''
-        if all_green:
+        if calls_hit:
             crown_html = '<span class="crown-emoji">👑</span>'
 
         # Rank badge
@@ -410,10 +413,17 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         elif rank == 3:
             badge_class += ' bronze'
 
-        # Progress bar (based on calls for default view)
+        # Progress bar (based on calls for default view) with shimmer tiers
         calls_pct = (rep['calls'] / TARGETS['calls']['green'] * 100) if TARGETS['calls']['green'] > 0 else 0
         calls_pct = min(calls_pct, 100)
-        bar_shimmer = ' shimmer-green' if all_green else ''
+        if calls_pct >= 100:
+            bar_shimmer = ' shimmer-green'
+        elif calls_pct >= 75:
+            bar_shimmer = ' shimmer-75'
+        elif calls_pct >= 50:
+            bar_shimmer = ' shimmer-50'
+        else:
+            bar_shimmer = ''
 
         # Countdown values
         calls_countdown = get_countdown(rep['calls'], 'calls')
@@ -747,13 +757,112 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         .lb-row.compact .activity-bar-track {{ height: 16px; }}
 
         /* ═══════════════════════════════════════════
-           TARGET ACHIEVED — green glow + confetti
+           BAR SHIMMER TIERS
            ═══════════════════════════════════════════ */
+        @keyframes barShimmer {{
+            0% {{ background-position: 200% 0; }}
+            100% {{ background-position: -200% 0; }}
+        }}
+
+        /* 50%+ — gentle white sweep */
+        .activity-bar-fill.shimmer-50::after {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+            background-size: 200% 100%;
+            animation: barShimmer 3s ease-in-out infinite;
+            border-radius: 3px;
+            pointer-events: none;
+        }}
+
+        /* 75%+ — brighter, faster */
+        .activity-bar-fill.shimmer-75::after {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            background-size: 200% 100%;
+            animation: barShimmer 2.5s ease-in-out infinite;
+            border-radius: 3px;
+            pointer-events: none;
+        }}
+
+        /* 100%+ — bold shimmer */
+        .activity-bar-fill.shimmer-green::after {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%);
+            background-size: 200% 100%;
+            animation: barShimmer 2s ease-in-out infinite;
+            border-radius: 3px;
+            pointer-events: none;
+        }}
+
+        /* ═══════════════════════════════════════════
+           TARGET HIT ROW — pulse + row shimmer sweep
+           Crown, confetti, pulsing glow, green sweep
+           ═══════════════════════════════════════════ */
+        @keyframes greenPulse {{
+            0%, 100% {{ box-shadow: 0 0 16px rgba(29, 185, 84, 0.25), var(--shadow-sm); }}
+            50% {{ box-shadow: 0 0 28px rgba(29, 185, 84, 0.4), 0 0 8px rgba(29, 185, 84, 0.15), var(--shadow-sm); }}
+        }}
+        @keyframes rowShimmer {{
+            0% {{ background-position: 200% 0; }}
+            100% {{ background-position: -200% 0; }}
+        }}
+
+        .lb-row.target-hit {{
+            border-left-color: var(--green);
+            background: linear-gradient(135deg, var(--green-bg) 0%, var(--surface-raised) 50%);
+            animation: greenPulse 3s ease-in-out infinite;
+        }}
+        .lb-row.target-hit::before {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(29, 185, 84, 0.08) 40%,
+                rgba(29, 185, 84, 0.18) 50%,
+                rgba(29, 185, 84, 0.08) 60%,
+                transparent 100%
+            );
+            background-size: 200% 100%;
+            animation: rowShimmer 3s ease-in-out infinite;
+            border-radius: var(--radius-md);
+            pointer-events: none;
+            z-index: 0;
+        }}
+        .lb-row.target-hit > * {{ position: relative; z-index: 1; }}
+
+        /* Legacy class for all-green (all 3 metrics hit) — same treatment */
         .lb-row.all-green {{
             border-left-color: var(--green);
-            box-shadow: 0 0 16px rgba(29, 185, 84, 0.25), var(--shadow-sm);
             background: linear-gradient(135deg, var(--green-bg) 0%, var(--surface-raised) 50%);
+            animation: greenPulse 3s ease-in-out infinite;
         }}
+        .lb-row.all-green::before {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(29, 185, 84, 0.08) 40%,
+                rgba(29, 185, 84, 0.18) 50%,
+                rgba(29, 185, 84, 0.08) 60%,
+                transparent 100%
+            );
+            background-size: 200% 100%;
+            animation: rowShimmer 3s ease-in-out infinite;
+            border-radius: var(--radius-md);
+            pointer-events: none;
+            z-index: 0;
+        }}
+        .lb-row.all-green > * {{ position: relative; z-index: 1; }}
 
         /* Confetti pieces */
         .confetti-piece {{
@@ -767,20 +876,6 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         @keyframes confettiFall {{
             0% {{ transform: translateY(-10px) rotate(0deg); opacity: 0.8; }}
             100% {{ transform: translateY(100px) rotate(720deg); opacity: 0; }}
-        }}
-
-        /* Shimmer on bar */
-        .activity-bar-fill.shimmer-green::after {{
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-            background-size: 200% 100%;
-            animation: shimmer 2s ease-in-out infinite;
-        }}
-        @keyframes shimmer {{
-            0% {{ background-position: 200% 0; }}
-            100% {{ background-position: -200% 0; }}
         }}
 
         /* ═══════════════════════════════════════════
@@ -1094,11 +1189,19 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             const duration_display = duration_cd === 0 ? '✓' : duration_cd;
             const emails_display = emails_cd === 0 ? '✓' : emails_cd;
 
-            const bar_shimmer = all_green ? ' shimmer-green' : '';
-            const row_class = (all_green ? 'all-green ' : '') + (rank <= 3 ? 'top-3 ' : '') + (rank > 5 ? 'compact' : '');
+            // Shimmer tier based on active metric bar width
+            let bar_shimmer = '';
+            if (bar_width >= 100) bar_shimmer = ' shimmer-green';
+            else if (bar_width >= 75) bar_shimmer = ' shimmer-75';
+            else if (bar_width >= 50) bar_shimmer = ' shimmer-50';
+
+            // Target hit for current metric?
+            const metric_hit = bar_status === 'green';
+            let row_class = (metric_hit ? 'target-hit ' : '') + (all_green ? 'all-green ' : '') + (rank <= 3 ? 'top-3 ' : '') + (rank > 5 ? 'compact' : '');
             const badge_class = rank === 1 ? 'gold' : (rank === 2 ? 'silver' : (rank === 3 ? 'bronze' : ''));
 
-            const crown = all_green ? '<span class="crown-emoji">👑</span>' : '';
+            // Crown if current metric target hit
+            const crown = metric_hit ? '<span class="crown-emoji">👑</span>' : '';
             const photo = rep_photos_json[rep.uid] ? `<img src="${{rep_photos_json[rep.uid]}}" alt="${{rep.name}}">` : `<span class="lb-photo-initials">${{rep.initials}}</span>`;
             const badge_ext = badge_class ? ` ${{badge_class}}` : '';
 
@@ -1132,11 +1235,26 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
                 </div>
             `;
             lb.appendChild(row);
+
+            // Add confetti to target-hit rows
+            if (metric_hit) {{
+                const colors = ['#FFD700', '#FF5C28', '#1DB954', '#FF7A52', '#FFC107', '#E04040'];
+                for (let c = 0; c < 12; c++) {{
+                    const piece = document.createElement('div');
+                    piece.className = 'confetti-piece';
+                    piece.style.left = Math.random() * 100 + '%';
+                    piece.style.top = '-10px';
+                    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.animationDelay = (Math.random() * 3) + 's';
+                    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    row.appendChild(piece);
+                }}
+            }}
         }});
     }}
 
-    // ── Confetti for all-green rows ──
-    document.querySelectorAll('.lb-row.all-green').forEach(row => {{
+    // ── Confetti for initial target-hit rows ──
+    document.querySelectorAll('.lb-row.target-hit').forEach(row => {{
         const colors = ['#FFD700', '#FF5C28', '#1DB954', '#FF7A52', '#FFC107', '#E04040'];
         for (let i = 0; i < 12; i++) {{
             const piece = document.createElement('div');
