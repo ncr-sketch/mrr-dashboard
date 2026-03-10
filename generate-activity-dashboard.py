@@ -566,6 +566,9 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             white-space: nowrap;
             flex-shrink: 0;
             text-transform: uppercase;
+            position: relative;
+            z-index: 2;
+            box-shadow: 4px 0 8px rgba(0,0,0,0.15);
         }}
         .ticker-track {{
             display: flex;
