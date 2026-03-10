@@ -435,6 +435,22 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         # Percentage color
         pct_color = get_status_color(rep['pct'])
 
+        # Countdown values
+        remaining = max(rep['target'] - rep['mrr'], 0)
+        is_hit = rep['pct'] >= 100
+        earned_display = format_amount(rep['mrr'])
+        bar_earned_class = 'bar-earned' if display_pct >= 35 else 'bar-earned outside'
+
+        if is_hit:
+            countdown_html = '<div class="countdown-amount hit">&#10003; Target hit</div>'
+        else:
+            countdown_html = f'<div><span class="countdown-amount">{format_amount(remaining)}</span><span class="countdown-arrow">&#8595;</span></div>'
+
+        if is_hit:
+            pct_arrow_html = f'<span class="pct-arrow" style="color: {pct_color};">&#8593;</span>'
+        else:
+            pct_arrow_html = f'<span class="pct-arrow" style="color: {pct_color};">&#8593;</span>'
+
         row = f'''            <div class="{' '.join(classes)}">
                 <div class="photo-rank-wrap">
                     {crown_html}
@@ -447,16 +463,19 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
                         {streak_html}
                     </div>
                     <div class="{bar_container_class}">
-                        <div class="lb-bar-fill{shimmer_class}" style="{bar_style}"></div>
+                        <div class="lb-bar-fill{shimmer_class}" style="{bar_style}">
+                            <span class="{bar_earned_class}">{earned_display} DKK</span>
+                        </div>
                     </div>
                 </div>
-                <div class="lb-mrr">
-                    <div class="lb-mrr-amount" data-countup="{rep['mrr']:.2f}">{format_amount(rep['mrr'])}</div>
-                    <div class="lb-mrr-target">of {format_amount(rep['target'])}</div>
+                <div class="lb-countdown">
+                    {countdown_html}
                 </div>
                 <div class="lb-pct">
-                    <div class="lb-pct-value" style="color: {pct_color};" data-countup-pct="{rep['pct']:.0f}">{rep['pct']:.0f}%</div>
-                    <div class="lb-pct-label">Target</div>
+                    <div>
+                        <span class="lb-pct-value" style="color: {pct_color};" data-countup-pct="{rep['pct']:.0f}">{rep['pct']:.0f}%</span>{pct_arrow_html}
+                    </div>
+                    <div class="lb-pct-sub">{format_amount(rep['target'])}</div>
                 </div>
             </div>'''
         leaderboard_rows.append(row)
@@ -1026,7 +1045,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
            ═══════════════════════════════════════════ */
         .lb-row {{
             display: grid;
-            grid-template-columns: 68px 1fr 120px 100px;
+            grid-template-columns: 68px 1fr 160px 130px;
             gap: 16px;
             align-items: center;
             background: var(--surface-raised);
@@ -1048,7 +1067,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             font-size: 18px;
         }}
 
-        .lb-row.top-3 .lb-mrr-amount {{
+        .lb-row.top-3 .countdown-amount {{
             font-size: 24px;
         }}
 
@@ -1072,8 +1091,16 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             font-size: 14px;
         }}
 
-        .lb-row.compact .lb-mrr-amount {{
+        .lb-row.compact .countdown-amount {{
             font-size: 18px;
+        }}
+
+        .lb-row.compact .countdown-arrow {{
+            font-size: 14px;
+        }}
+
+        .lb-row.compact .bar-earned {{
+            font-size: 9px;
         }}
 
         .lb-row.compact .lb-pct-value {{
@@ -1333,6 +1360,30 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             animation: shimmer 2s ease-in-out infinite;
         }}
 
+        .bar-earned {{
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 11px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+            white-space: nowrap;
+            z-index: 1;
+        }}
+
+        .bar-earned.outside {{
+            right: auto;
+            left: calc(100% + 8px);
+            color: var(--text-tertiary);
+            text-shadow: none;
+        }}
+
+        body.dark-mode .bar-earned.outside {{
+            color: #9090a0;
+        }}
+
         /* Over-target: soft green track */
         .lb-bar-container.over-target {{
             background: linear-gradient(180deg, rgba(29,185,84,0.15) 0%, rgba(29,185,84,0.25) 50%, rgba(29,185,84,0.15) 100%);
@@ -1349,28 +1400,40 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             opacity: 0.3;
         }}
 
-        .lb-mrr {{
+        .lb-countdown {{
             text-align: right;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
         }}
 
-        .lb-mrr-amount {{
+        .countdown-amount {{
             font-size: 22px;
             font-weight: 700;
             color: var(--text-primary);
             letter-spacing: -0.5px;
+            display: inline;
         }}
 
-        .lb-mrr-target {{
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-tertiary);
+        .countdown-amount.hit {{
+            color: var(--green);
+        }}
+
+        .countdown-arrow {{
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-left: 4px;
+            display: inline;
+        }}
+
+        body.dark-mode .countdown-amount {{
+            color: #ffffff;
+        }}
+
+        body.dark-mode .countdown-arrow {{
+            color: #ffffff;
         }}
 
         .lb-pct {{
-            text-align: right;
+            text-align: center;
         }}
 
         .lb-pct-value {{
@@ -1378,14 +1441,26 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.5px;
+            display: inline;
         }}
 
-        .lb-pct-label {{
-            font-size: 10px;
-            font-weight: 500;
+        .pct-arrow {{
+            font-size: 18px;
+            font-weight: 700;
+            margin-left: 2px;
+            display: inline;
+        }}
+
+        .lb-pct-sub {{
+            font-size: 11px;
+            font-weight: 600;
             color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }}
+
+        body.dark-mode .lb-pct-sub {{
+            color: #9090a0;
+            text-shadow: 0 0 6px rgba(144, 144, 160, 0.3);
         }}
 
         /* Footer */
@@ -1807,15 +1882,24 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 
             const pctColor = getStatusColor(rep.pct);
 
+            const remaining = Math.max(rep.target - rep.mrr, 0);
+            const isHit = rep.pct >= 100;
+            const earnedDisplay = formatAmount(rep.mrr);
+            const barEarnedClass = displayPct >= 35 ? 'bar-earned' : 'bar-earned outside';
+            const countdownHtml = isHit
+                ? '<div class="countdown-amount hit">&#10003; Target hit</div>'
+                : '<div><span class="countdown-amount">' + formatAmount(remaining) + '</span><span class="countdown-arrow">&#8595;</span></div>';
+            const pctArrowHtml = '<span class="pct-arrow" style="color:' + pctColor + ';">&#8593;</span>';
+
             const row = document.createElement('div');
             row.className = classes.join(' ');
             row.style.animationDelay = (0.05 * rank) + 's';
             row.innerHTML =
                 '<div class="photo-rank-wrap">' + crownHtml + '<div class="lb-photo">' + photoInner + '</div><div class="' + badgeClass + '">' + rank + '</div></div>' +
                 '<div class="lb-info"><div class="lb-name-row"><span class="lb-name">' + rep.name + '</span>' + streakHtml + '</div>' +
-                '<div class="' + barContainerClass + '"><div class="lb-bar-fill' + shimmerClass + '" style="' + barStyle + '"></div></div></div>' +
-                '<div class="lb-mrr"><div class="lb-mrr-amount">' + formatAmount(rep.mrr) + '</div><div class="lb-mrr-target">of ' + formatAmount(rep.target) + '</div></div>' +
-                '<div class="lb-pct"><div class="lb-pct-value" style="color:' + pctColor + ';">' + Math.round(rep.pct) + '%</div><div class="lb-pct-label">Target</div></div>';
+                '<div class="' + barContainerClass + '"><div class="lb-bar-fill' + shimmerClass + '" style="' + barStyle + '"><span class="' + barEarnedClass + '">' + earnedDisplay + ' DKK</span></div></div></div>' +
+                '<div class="lb-countdown">' + countdownHtml + '</div>' +
+                '<div class="lb-pct"><div><span class="lb-pct-value" style="color:' + pctColor + ';">' + Math.round(rep.pct) + '%</span>' + pctArrowHtml + '</div><div class="lb-pct-sub">' + formatAmount(rep.target) + '</div></div>';
             listEl.appendChild(row);
 
             // Add confetti for achieved rows
