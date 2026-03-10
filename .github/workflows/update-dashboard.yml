@@ -1,4 +1,4 @@
-name: Update MRR Dashboard
+name: Update Dashboards
 
 on:
   schedule:
@@ -31,15 +31,24 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Generate dashboard
+      - name: Generate MRR dashboard
         env:
           CLOSE_API_KEY: ${{ secrets.CLOSE_API_KEY }}
         run: python3 generate-dashboard.py --once
+
+      - name: Generate Activity dashboard
+        env:
+          CLOSE_API_KEY: ${{ secrets.CLOSE_API_KEY }}
+        run: python3 generate-activity-dashboard.py --once
 
       - name: Prepare pages
         run: |
           mkdir -p _site
           cp clerk-mrr-dashboard-live.html _site/index.html
+          cp activity-dashboard.html _site/activity.html
+          if [ -d photos ]; then
+            cp -r photos _site/photos
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
