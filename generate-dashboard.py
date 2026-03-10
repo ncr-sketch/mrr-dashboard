@@ -1427,6 +1427,9 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         body.dark-mode .countdown-amount {{
             color: #ffffff;
         }}
+        body.dark-mode .countdown-amount.hit {{
+            color: var(--green);
+        }}
 
         body.dark-mode .countdown-arrow {{
             color: #ffffff;
