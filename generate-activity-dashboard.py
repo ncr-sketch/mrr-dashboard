@@ -651,7 +651,7 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         }}
         .ticker-track {{
             display: flex;
-            animation: tickerScroll 40s linear infinite;
+            animation: tickerScroll 80s linear infinite;
             white-space: nowrap;
         }}
         @keyframes tickerScroll {{
