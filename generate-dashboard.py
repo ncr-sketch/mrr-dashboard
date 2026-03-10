@@ -348,7 +348,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         # Duplicate the items for seamless infinite scroll
         ticker_html = f'''
     <div class="deal-ticker">
-        <div class="ticker-label">LATEST WINS</div>
+        <div class="ticker-label"><span class="ticker-dot"></span> LATEST WINS</div>
         <div class="ticker-track">
             {ticker_items}
             {ticker_items}
@@ -646,6 +646,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             bottom: 0;
             display: flex;
             align-items: center;
+            gap: 8px;
             padding: 0 18px;
             background: var(--green);
             color: #fff;
@@ -655,6 +656,19 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             z-index: 2;
             white-space: nowrap;
             border-radius: 10px 0 0 10px;
+        }}
+
+        @keyframes tickerDotPulse {{
+            0%, 100% {{ opacity: 1; transform: scale(1); }}
+            50% {{ opacity: 0.4; transform: scale(0.8); }}
+        }}
+        .ticker-dot {{
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+            animation: tickerDotPulse 1.5s ease-in-out infinite;
+            flex-shrink: 0;
         }}
 
         .ticker-track {{
