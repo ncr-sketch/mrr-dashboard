@@ -13,6 +13,8 @@ Photos: place rep headshots in a 'photos/' folder next to this script.
 """
 
 import json
+import csv
+import io
 import base64
 import urllib.request
 import urllib.error
@@ -29,18 +31,21 @@ CLOSE_API_KEY = os.environ.get("CLOSE_API_KEY", "")
 WON_STATUS_ID = "stat_IyAn2lpFlElQQjqLVGs9Pc1TfeJqTJaN3ZX0L147a61"
 PIPELINE_ID = "pipe_4r3PtlYGyS8nyD57HXlyyQ"
 
+# Google Sheet published CSV URL for dynamic monthly targets
+TARGETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRvYx1TQlQOnRG0hAZdOvoWFmBEVVOE7Xvtgo4WLq1SXljnpFhJ3wQK3HlC3YFasUrRmqveEvIhbqg8/pub?output=csv"
+
 REPS = {
-    'user_yBw9tNt4WNDf34dsPFG48SpvefoK7A8zPMjfU4K4DYM': {'name': 'Robert Bengtsson', 'initials': 'RB', 'target': 13182},
-    'user_7bbV5f2geHD1hLDw54p9Vr088T3yW6TSBLUs8JAMEzV': {'name': 'Peter Rossé', 'initials': 'PR', 'target': 12273},
-    'user_O0GV7AdCKCB5bOrK89NeJYyNoPYpcLjJCCUHinDgoLR': {'name': 'Anders Hildan', 'initials': 'AH', 'target': 16500},
-    'user_guKLcbLohZnYhgae5FGvEK6f9ay5fTsAvOnfq6pq3gn': {'name': 'Braxton Phillips', 'initials': 'BP', 'target': 16500},
-    'user_5Mkg13Ge14LxiplY5t8phIud1vfqxkVe6su6RF4IJRh': {'name': 'Arnab Deb', 'initials': 'AD', 'target': 5000},
-    'user_YJuiXnlZrSDAeBGXHL7ehssMRWzxlH86jtXr7NExbss': {'name': 'Alexander Alken', 'initials': 'AA', 'target': 10500},
-    'user_rgafRJqGdOmQVhsZx3fh8PcL12ASTMFm9asWvHpfDs2': {'name': 'Alexandra Beikerts', 'initials': 'AB', 'target': 10500},
-    'user_SAZq4wEnfq5ILVTsn0ftwUOk2B3buDEoboxWigYg0ku': {'name': 'Daniela Drobna', 'initials': 'DD', 'target': 10500},
-    'user_sVcAJW2NzbU6ZlfVrX4zqUp78rbJXQEyGq7tmFugyHY': {'name': 'Christian Antoniu', 'initials': 'CA', 'target': 7989},
-    'user_nwSw0RV3curn6amDVD8qbiYkB02K3D7a2PN7CBZlZPa': {'name': 'Alessio Catania', 'initials': 'AC', 'target': 9250},
-    'user_5pIrGaTwAhuFiCpleT0rdfI86E2HoOra853wfUuJmRx': {'name': 'Maja Krokowska', 'initials': 'MK', 'target': 5000},
+    'user_yBw9tNt4WNDf34dsPFG48SpvefoK7A8zPMjfU4K4DYM': {'name': 'Robert Bengtsson', 'initials': 'RB', 'email': 'rob@clerk.io', 'target': 13182},
+    'user_7bbV5f2geHD1hLDw54p9Vr088T3yW6TSBLUs8JAMEzV': {'name': 'Peter Rossé', 'initials': 'PR', 'email': 'ptr@clerk.io', 'target': 12273},
+    'user_O0GV7AdCKCB5bOrK89NeJYyNoPYpcLjJCCUHinDgoLR': {'name': 'Anders Hildan', 'initials': 'AH', 'email': 'anh@clerk.io', 'target': 16500},
+    'user_guKLcbLohZnYhgae5FGvEK6f9ay5fTsAvOnfq6pq3gn': {'name': 'Braxton Phillips', 'initials': 'BP', 'email': 'brp@clerk.io', 'target': 16500},
+    'user_5Mkg13Ge14LxiplY5t8phIud1vfqxkVe6su6RF4IJRh': {'name': 'Arnab Deb', 'initials': 'AD', 'email': 'ade@clerk.io', 'target': 5000},
+    'user_YJuiXnlZrSDAeBGXHL7ehssMRWzxlH86jtXr7NExbss': {'name': 'Alexander Alken', 'initials': 'AA', 'email': 'aal@clerk.io', 'target': 10500},
+    'user_rgafRJqGdOmQVhsZx3fh8PcL12ASTMFm9asWvHpfDs2': {'name': 'Alexandra Beikerts', 'initials': 'AB', 'email': 'alb@clerk.io', 'target': 10500},
+    'user_SAZq4wEnfq5ILVTsn0ftwUOk2B3buDEoboxWigYg0ku': {'name': 'Daniela Drobna', 'initials': 'DD', 'email': 'ddr@clerk.io', 'target': 10500},
+    'user_sVcAJW2NzbU6ZlfVrX4zqUp78rbJXQEyGq7tmFugyHY': {'name': 'Christian Antoniu', 'initials': 'CA', 'email': 'chn@clerk.io', 'target': 7989},
+    'user_nwSw0RV3curn6amDVD8qbiYkB02K3D7a2PN7CBZlZPa': {'name': 'Alessio Catania', 'initials': 'AC', 'email': 'alc@clerk.io', 'target': 9250},
+    'user_5pIrGaTwAhuFiCpleT0rdfI86E2HoOra853wfUuJmRx': {'name': 'Maja Krokowska', 'initials': 'MK', 'email': 'maj@clerk.io', 'target': 5000},
 }
 
 SCRIPT_DIR = Path(__file__).parent
@@ -182,6 +187,73 @@ def get_recent_deals(opps, count=3):
     return [opp for _, opp in scored[:count]]
 
 
+def fetch_targets_from_sheet():
+    """
+    Fetch monthly targets from the published Google Sheet CSV.
+
+    The sheet has one row per rep per month with columns:
+      email, name, date (M/D/YYYY), target
+
+    Returns a nested dict: {email: {YYYY-MM: target_amount}}
+    Falls back to empty dict on failure (hardcoded REPS targets used instead).
+    """
+    # Build email → user_id lookup
+    email_to_uid = {r['email']: uid for uid, r in REPS.items()}
+
+    try:
+        req = urllib.request.Request(TARGETS_CSV_URL)
+        req.add_header('User-Agent', 'ClerkDashboard/1.0')
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            raw = resp.read().decode('utf-8-sig')  # BOM-safe
+    except Exception as e:
+        print(f"  ⚠ Could not fetch targets sheet: {e}")
+        return {}
+
+    # Parse CSV — columns: email, name, date, target
+    targets = {}  # {user_id: {YYYY-MM: target_amount}}
+    reader = csv.reader(io.StringIO(raw))
+
+    for row_num, row in enumerate(reader):
+        if len(row) < 4:
+            continue
+
+        email_raw = row[0].strip().lower()
+        # name_raw = row[1].strip()  # not used for matching
+        date_raw = row[2].strip()
+        target_raw = row[3].strip().replace(',', '')
+
+        # Skip header row if present
+        if row_num == 0 and not any(c.isdigit() for c in date_raw):
+            continue
+
+        # Match email to user_id
+        uid = email_to_uid.get(email_raw)
+        if not uid:
+            continue
+
+        # Parse the date to extract YYYY-MM
+        # Handles M/D/YYYY and MM/DD/YYYY formats
+        try:
+            parts = date_raw.split('/')
+            month = int(parts[0])
+            year = int(parts[2])
+            month_key = f"{year}-{month:02d}"
+        except (ValueError, IndexError):
+            continue
+
+        # Parse target amount
+        try:
+            target_val = float(target_raw)
+        except ValueError:
+            continue
+
+        if uid not in targets:
+            targets[uid] = {}
+        targets[uid][month_key] = target_val
+
+    return targets
+
+
 def get_photo_data_uri(rep_name):
     """
     Look for a photo in photos/ folder and return base64 data URI.
@@ -232,7 +304,7 @@ def get_status_color(percent):
     return 'var(--red)'
 
 
-def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json):
+def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json, sheet_targets_json):
     """Generate the complete dashboard HTML with all CSS and data."""
     today = date.today()
     now = datetime.now()
@@ -1503,6 +1575,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
     const ALL_OPPS = {all_ytd_opps_json};
     const REP_PHOTOS = {rep_photos_json};
     const REPS_CONFIG = {reps_config_json};
+    const SHEET_TARGETS = {sheet_targets_json};
     const CURRENT_YEAR = {today.year};
     const CURRENT_MONTH = {today.month};
     const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1597,16 +1670,21 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             repDeals[uid] = (repDeals[uid] || 0) + 1;
         }}
 
-        // Build sorted rep data
-        const repData = Object.entries(REPS_CONFIG).map(([uid, rep]) => ({{
-            uid,
-            name: rep.name,
-            initials: rep.initials,
-            target: rep.target,
-            mrr: repMrr[uid] || 0,
-            pct: rep.target > 0 ? ((repMrr[uid] || 0) / rep.target * 100) : 0,
-            deals: repDeals[uid] || 0
-        }}));
+        // Build sorted rep data — use sheet targets if available, else fallback
+        const monthKey = year + '-' + String(month).padStart(2, '0');
+        const repData = Object.entries(REPS_CONFIG).map(([uid, rep]) => {{
+            const sheetTarget = (SHEET_TARGETS[uid] && SHEET_TARGETS[uid][monthKey]) ? SHEET_TARGETS[uid][monthKey] : rep.target;
+            const mrr = repMrr[uid] || 0;
+            return {{
+                uid,
+                name: rep.name,
+                initials: rep.initials,
+                target: sheetTarget,
+                mrr: mrr,
+                pct: sheetTarget > 0 ? (mrr / sheetTarget * 100) : 0,
+                deals: repDeals[uid] || 0
+            }};
+        }});
         repData.sort((a, b) => b.pct - a.pct);
 
         // ── Update hero card ──
@@ -1830,6 +1908,14 @@ def main():
         while True:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Fetching opportunities from Close...")
 
+            # Fetch dynamic targets from Google Sheet
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Fetching targets from Google Sheet...")
+            sheet_targets = fetch_targets_from_sheet()  # {user_id: {YYYY-MM: target}}
+            if sheet_targets:
+                print(f"  Loaded targets for {len(sheet_targets)} reps from sheet")
+            else:
+                print(f"  ⚠ Using hardcoded fallback targets")
+
             # Fetch all won opportunities
             all_opps = fetch_won_opportunities()
             print(f"  Fetched {len(all_opps)} total won opportunities")
@@ -1837,6 +1923,7 @@ def main():
             # Calculate date bounds (include the FULL month and FULL year,
             # not just up to today — deals can have future close dates)
             today = date.today()
+            current_month_key = f"{today.year}-{today.month:02d}"
             month_start = f"{today.year}-{today.month:02d}-01"
             # Next month start (handles December → January rollover)
             if today.month == 12:
@@ -1856,6 +1943,11 @@ def main():
             monthly_opps = filter_by_date_range(all_opps, month_start, month_end)
             ytd_opps = filter_by_date_range(all_opps, year_start, year_end)
             print(f"  Monthly: {len(monthly_opps)} opps, YTD: {len(ytd_opps)} opps")
+
+            # Override current month targets from the sheet (if available)
+            for uid in REPS:
+                if uid in sheet_targets and current_month_key in sheet_targets[uid]:
+                    REPS[uid]['target'] = sheet_targets[uid][current_month_key]
 
             # Aggregate by rep
             monthly_mrr = aggregate_by_rep(monthly_opps)
@@ -1898,12 +1990,17 @@ def main():
                     rep_photos[rep['name']] = photo_uri
             rep_photos_json = json.dumps(rep_photos)
 
+            # Prepare sheet targets JSON for JS month switching
+            # Format: {user_id: {YYYY-MM: target}} — JS uses this to look up
+            # the correct target when the user switches months
+            sheet_targets_json = json.dumps(sheet_targets)
+
             # Log totals
             total = sum(monthly_mrr.get(uid, 0) for uid in REPS)
             print(f"  Total monthly MRR: DKK {total:,.2f}")
 
             # Generate HTML
-            html = generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json)
+            html = generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json, sheet_targets_json)
 
             # Write to file
             output_path = SCRIPT_DIR / "clerk-mrr-dashboard-live.html"
