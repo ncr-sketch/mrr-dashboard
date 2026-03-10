@@ -348,7 +348,7 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
 
     # Duplicate items for seamless loop
     ticker_html = f'''<div class="activity-ticker">
-    <div class="ticker-label">⚡ Live</div>
+    <div class="ticker-label"><span class="live-dot"></span> Live</div>
     <div class="ticker-track">
 {ticker_html_items}{ticker_html_items}    </div>
 </div>
@@ -552,19 +552,27 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         /* ═══════════════════════════════════════════
            LIVE ACTIVITY TICKER
            ═══════════════════════════════════════════ */
+        @keyframes tickerPulse {{
+            0%, 100% {{ box-shadow: 0 0 12px rgba(29, 185, 84, 0.15), var(--shadow-sm); }}
+            50% {{ box-shadow: 0 0 22px rgba(29, 185, 84, 0.3), 0 0 6px rgba(29, 185, 84, 0.1), var(--shadow-sm); }}
+        }}
+        @keyframes dotPulse {{
+            0%, 100% {{ opacity: 1; transform: scale(1); }}
+            50% {{ opacity: 0.4; transform: scale(0.8); }}
+        }}
         .activity-ticker {{
             display: flex;
             align-items: center;
-            background: var(--surface-raised);
+            background: linear-gradient(135deg, var(--green-bg), var(--surface));
             border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm);
+            border: 2px solid var(--green);
+            animation: tickerPulse 3s ease-in-out infinite;
             overflow: hidden;
             margin-bottom: 24px;
             height: 52px;
         }}
         .ticker-label {{
-            background: var(--clerk-orange);
+            background: var(--green);
             color: #fff;
             font-size: 11px;
             font-weight: 700;
@@ -573,12 +581,21 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             height: 100%;
             display: flex;
             align-items: center;
+            gap: 8px;
             white-space: nowrap;
             flex-shrink: 0;
             text-transform: uppercase;
             position: relative;
             z-index: 2;
-            box-shadow: 4px 0 8px rgba(0,0,0,0.15);
+            box-shadow: 4px 0 8px rgba(0,0,0,0.2);
+        }}
+        .live-dot {{
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+            animation: dotPulse 1.5s ease-in-out infinite;
+            flex-shrink: 0;
         }}
         .ticker-track {{
             display: flex;
