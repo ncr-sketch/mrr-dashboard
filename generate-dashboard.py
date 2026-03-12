@@ -22,8 +22,12 @@ import sys
 import os
 import time
 import calendar
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+# Copenhagen timezone for accurate "today" calculation
+CPH_TZ = ZoneInfo("Europe/Copenhagen")
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 CLOSE_API_BASE = "https://api.close.com/api/v1"
@@ -306,8 +310,9 @@ def get_status_color(percent):
 
 def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json, sheet_targets_json):
     """Generate the complete dashboard HTML with all CSS and data."""
-    today = date.today()
-    now = datetime.now()
+    now_cph = datetime.now(CPH_TZ)
+    today = now_cph.date()
+    now = now_cph
     month_names = ['January', 'February', 'March', 'April', 'May', 'June',
                    'July', 'August', 'September', 'October', 'November', 'December']
     current_month = f"{month_names[today.month - 1]} {today.year}"
@@ -2023,7 +2028,7 @@ def main():
 
             # Calculate date bounds (include the FULL month and FULL year,
             # not just up to today — deals can have future close dates)
-            today = date.today()
+            today = datetime.now(CPH_TZ).date()
             current_month_key = f"{today.year}-{today.month:02d}"
             month_start = f"{today.year}-{today.month:02d}-01"
             # Next month start (handles December → January rollover)
