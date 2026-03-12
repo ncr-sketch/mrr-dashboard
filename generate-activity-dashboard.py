@@ -536,6 +536,15 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
 
     leaderboard_html = '\n'.join(leaderboard_rows)
 
+    # ── Compute team totals for tab display ──
+    total_calls = sum(r['calls'] for r in rep_data)
+    total_duration = sum(r['duration'] for r in rep_data)
+    total_emails = sum(r['emails'] for r in rep_data)
+    # Format duration as Xh Ym
+    dur_hours = total_duration // 60
+    dur_mins = total_duration % 60
+    total_duration_display = f"{dur_hours}h {dur_mins}m" if dur_hours > 0 else f"{dur_mins}m"
+
     # ── Pre-compute JSON variables for f-string ──
     rep_data_json = json.dumps(rep_data)
     targets_json = json.dumps(TARGETS)
@@ -717,9 +726,9 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         }}
         .metric-tab {{
             flex: 1;
-            padding: 12px 20px;
+            padding: 10px 20px;
             border-radius: var(--radius-sm);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             text-align: center;
             cursor: pointer;
@@ -728,10 +737,30 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             background: transparent;
             border: none;
             font-family: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
         }}
         .metric-tab:hover {{
             color: var(--text-primary);
             background: var(--surface-raised);
+        }}
+        .tab-metric-name {{
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }}
+        .tab-total {{
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-tertiary);
+            position: relative;
+            z-index: 1;
+        }}
+        .metric-tab.active .tab-total {{
+            color: var(--green);
         }}
         @keyframes shimmerSweep {{
             0% {{ background-position: 200% 0; }}
@@ -762,7 +791,7 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             border-radius: var(--radius-sm);
             pointer-events: none;
         }}
-        .metric-tab .tab-icon {{ margin-right: 6px; }}
+        .metric-tab .tab-icon {{ margin-right: 0; }}
 
         /* ═══════════════════════════════════════════
            LEADERBOARD
@@ -1154,13 +1183,16 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
 <!-- ═══════════════════ METRIC TABS ═══════════════════ -->
 <div class="metric-tabs">
     <button class="metric-tab active" onclick="switchTab('calls')">
-        <span class="tab-icon">📞</span> Calls Made
+        <span class="tab-metric-name"><span class="tab-icon">📞</span> Calls Made</span>
+        <span class="tab-total" id="tabTotalCalls">{total_calls}</span>
     </button>
     <button class="metric-tab" onclick="switchTab('duration')">
-        <span class="tab-icon">⏱️</span> Call Duration
+        <span class="tab-metric-name"><span class="tab-icon">⏱️</span> Call Duration</span>
+        <span class="tab-total" id="tabTotalDuration">{total_duration_display}</span>
     </button>
     <button class="metric-tab" onclick="switchTab('emails')">
-        <span class="tab-icon">✉️</span> Emails Sent
+        <span class="tab-metric-name"><span class="tab-icon">✉️</span> Emails Sent</span>
+        <span class="tab-total" id="tabTotalEmails">{total_emails}</span>
     </button>
 </div>
 
@@ -1221,6 +1253,18 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
     }}
     updateClock();
     setInterval(updateClock, 1000);
+
+    // ── Tab totals ──
+    function updateTabTotals() {{
+        const totalCalls = repData.reduce((s, r) => s + r.calls, 0);
+        const totalDuration = repData.reduce((s, r) => s + r.duration, 0);
+        const totalEmails = repData.reduce((s, r) => s + r.emails, 0);
+        const dH = Math.floor(totalDuration / 60);
+        const dM = totalDuration % 60;
+        document.getElementById('tabTotalCalls').textContent = totalCalls;
+        document.getElementById('tabTotalDuration').textContent = dH > 0 ? dH + 'h ' + dM + 'm' : dM + 'm';
+        document.getElementById('tabTotalEmails').textContent = totalEmails;
+    }}
 
     // ── Tab switching ──
     const tabConfig = {{
