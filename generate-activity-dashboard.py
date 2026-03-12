@@ -22,8 +22,12 @@ import sys
 import os
 import time
 import random
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+# Copenhagen timezone for accurate "today" calculation
+CPH_TZ = ZoneInfo("Europe/Copenhagen")
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 CLOSE_API_BASE = "https://api.close.com/api/v1"
@@ -123,10 +127,14 @@ def get_photo_data_uri(rep_name):
 
 
 def fetch_todays_calls():
-    """Fetch all call activities from today for configured reps."""
-    today = date.today()
-    date_gte = today.isoformat()  # "2026-03-10"
-    date_lt = (today + timedelta(days=1)).isoformat()  # "2026-03-11"
+    """Fetch all call activities from today (Copenhagen time) for configured reps."""
+    now_cph = datetime.now(CPH_TZ)
+    today_cph = now_cph.date()
+    # Convert Copenhagen midnight boundaries to UTC for the API
+    start_cph = datetime(today_cph.year, today_cph.month, today_cph.day, tzinfo=CPH_TZ)
+    end_cph = start_cph + timedelta(days=1)
+    date_gte = start_cph.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
+    date_lt = end_cph.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
 
     all_calls = []
     skip = 0
@@ -155,10 +163,14 @@ def fetch_todays_calls():
 
 
 def fetch_todays_emails():
-    """Fetch all email activities from today for configured reps."""
-    today = date.today()
-    date_gte = today.isoformat()
-    date_lt = (today + timedelta(days=1)).isoformat()
+    """Fetch all email activities from today (Copenhagen time) for configured reps."""
+    now_cph = datetime.now(CPH_TZ)
+    today_cph = now_cph.date()
+    # Convert Copenhagen midnight boundaries to UTC for the API
+    start_cph = datetime(today_cph.year, today_cph.month, today_cph.day, tzinfo=CPH_TZ)
+    end_cph = start_cph + timedelta(days=1)
+    date_gte = start_cph.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
+    date_lt = end_cph.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
 
     all_emails = []
     skip = 0
@@ -362,8 +374,9 @@ def get_countdown(value, metric):
 
 def generate_html(rep_stats, ticker_items, rep_photos_json):
     """Generate the complete dashboard HTML with all CSS and data."""
-    today = date.today()
-    now = datetime.now()
+    now_cph = datetime.now(CPH_TZ)
+    today = now_cph.date()
+    now = now_cph
     month_names = ['January', 'February', 'March', 'April', 'May', 'June',
                    'July', 'August', 'September', 'October', 'November', 'December']
     date_display = f"{month_names[today.month - 1]} {today.day}, {today.year}"
