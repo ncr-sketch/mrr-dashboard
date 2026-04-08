@@ -32,7 +32,10 @@ CPH_TZ = ZoneInfo("Europe/Copenhagen")
 # ── Configuration ─────────────────────────────────────────────────────────────
 CLOSE_API_BASE = "https://api.close.com/api/v1"
 CLOSE_API_KEY = os.environ.get("CLOSE_API_KEY", "")
-WON_STATUS_ID = "stat_IyAn2lpFlElQQjqLVGs9Pc1TfeJqTJaN3ZX0L147a61"
+WON_STATUS_IDS = [
+    "stat_IyAn2lpFlElQQjqLVGs9Pc1TfeJqTJaN3ZX0L147a61",  # Closed Won - contract signed
+    "stat_sWOJvWOgidm8OspaJ0oiwgaAfHQtHv1kn4O5xKvZkrx",  # Cross-Sell Won
+]
 PIPELINE_ID = "pipe_4r3PtlYGyS8nyD57HXlyyQ"
 
 # Google Sheet published CSV URL for dynamic monthly targets
@@ -95,28 +98,31 @@ def close_api_request(endpoint, params=None):
 
 
 def fetch_won_opportunities():
-    """Fetch all won opportunities from Close API with pagination."""
+    """Fetch all won opportunities from Close API with pagination.
+    Fetches from both 'Closed Won - contract signed' and 'Cross-Sell Won' statuses."""
     opportunities = []
-    skip = 0
-    limit = 100
 
-    while True:
-        params = {
-            'status_id': WON_STATUS_ID,
-            '_limit': limit,
-            '_skip': skip,
-        }
-        try:
-            response = close_api_request('/opportunity/', params)
-            data = response.get('data', [])
-            opportunities.extend(data)
+    for status_id in WON_STATUS_IDS:
+        skip = 0
+        limit = 100
 
-            if not response.get('has_more', False):
+        while True:
+            params = {
+                'status_id': status_id,
+                '_limit': limit,
+                '_skip': skip,
+            }
+            try:
+                response = close_api_request('/opportunity/', params)
+                data = response.get('data', [])
+                opportunities.extend(data)
+
+                if not response.get('has_more', False):
+                    break
+                skip += limit
+            except Exception as e:
+                print(f"Error fetching opportunities (status {status_id}): {e}")
                 break
-            skip += limit
-        except Exception as e:
-            print(f"Error fetching opportunities: {e}")
-            break
 
     return opportunities
 
