@@ -38,8 +38,8 @@ WON_STATUS_IDS = [
 ]
 PIPELINE_ID = "pipe_4r3PtlYGyS8nyD57HXlyyQ"
 
-# Google Sheet published CSV URL for dynamic monthly targets
-TARGETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRvYx1TQlQOnRG0hAZdOvoWFmBEVVOE7Xvtgo4WLq1SXljnpFhJ3wQK3HlC3YFasUrRmqveEvIhbqg8/pub?output=csv"
+# Local targets CSV (edit this file directly in the repo each month)
+TARGETS_CSV_PATH = Path(__file__).parent / "targets.csv"
 
 REPS = {
     'user_yBw9tNt4WNDf34dsPFG48SpvefoK7A8zPMjfU4K4DYM': {'name': 'Robert Bengtsson', 'initials': 'RB', 'email': 'rob@clerk.io', 'target': 11864},
@@ -197,38 +197,28 @@ def get_recent_deals(opps, count=3):
     return [opp for _, opp in scored[:count]]
 
 
-def fetch_targets_from_sheet():
+def load_targets_from_csv():
     """
-    Fetch monthly targets from the published Google Sheet CSV.
+    Load monthly targets from the local targets.csv file.
 
-    The sheet has one row per rep per month with columns:
-      email, name, date (M/D/YYYY), target
-
-    Returns a nested dict: {email: {YYYY-MM: target_amount}}
-    Falls back to empty dict on failure (hardcoded REPS targets used instead).
+    The CSV has columns: email, name, date (M/D/YYYY), target
+    Returns a nested dict: {user_id: {YYYY-MM: target_amount}}
+    Falls back to empty dict if file is missing (hardcoded REPS targets used instead).
     """
-    # Build email → user_id lookup
+    if not TARGETS_CSV_PATH.exists():
+        print(f"  ⚠ targets.csv not found at {TARGETS_CSV_PATH}")
+        return {}
+
     email_to_uid = {r['email']: uid for uid, r in REPS.items()}
 
     try:
-        req = urllib.request.Request(TARGETS_CSV_URL)
-        req.add_header('User-Agent', 'Mozilla/5.0 (compatible; ClerkDashboard/1.0)')
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            status = resp.getcode()
-            content_type = resp.headers.get('Content-Type', '')
-            raw = resp.read().decode('utf-8-sig')  # BOM-safe
-            print(f"  Sheet fetch: HTTP {status}, Content-Type: {content_type}, {len(raw)} bytes")
-            if len(raw) < 20:
-                print(f"  ⚠ Sheet response too short: {raw[:100]}")
-                return {}
+        raw = TARGETS_CSV_PATH.read_text(encoding='utf-8-sig')
     except Exception as e:
-        print(f"  ⚠ Could not fetch targets sheet: {type(e).__name__}: {e}")
+        print(f"  ⚠ Could not read targets.csv: {e}")
         return {}
 
-    # Parse CSV — columns: email, name, date, target
-    targets = {}  # {user_id: {YYYY-MM: target_amount}}
+    targets = {}
     reader = csv.reader(io.StringIO(raw))
-    rows_parsed = 0
     rows_matched = 0
 
     for row_num, row in enumerate(reader):
@@ -236,48 +226,36 @@ def fetch_targets_from_sheet():
             continue
 
         email_raw = row[0].strip().lower()
-        # name_raw = row[1].strip()  # not used for matching
         date_raw = row[2].strip()
         target_raw = row[3].strip().replace(',', '')
 
-        # Skip header row if present
+        # Skip header row
         if row_num == 0 and not any(c.isdigit() for c in date_raw):
-            print(f"  Skipping header row: {row}")
             continue
 
-        rows_parsed += 1
-
-        # Match email to user_id
         uid = email_to_uid.get(email_raw)
         if not uid:
-            print(f"  ⚠ No matching rep for email: '{email_raw}'")
             continue
 
-        # Parse the date to extract YYYY-MM
-        # Handles M/D/YYYY and MM/DD/YYYY formats
         try:
             parts = date_raw.split('/')
             month = int(parts[0])
             year = int(parts[2])
             month_key = f"{year}-{month:02d}"
         except (ValueError, IndexError):
-            print(f"  ⚠ Could not parse date: '{date_raw}'")
             continue
 
-        # Parse target amount
         try:
             target_val = float(target_raw)
         except ValueError:
-            print(f"  ⚠ Could not parse target: '{target_raw}'")
             continue
 
         if uid not in targets:
             targets[uid] = {}
         targets[uid][month_key] = target_val
         rows_matched += 1
-        print(f"  Target: {email_raw} → {month_key} = {target_val}")
 
-    print(f"  Sheet summary: {rows_parsed} data rows, {rows_matched} matched to reps")
+    print(f"  Loaded {rows_matched} targets from targets.csv")
     return targets
 
 
@@ -331,7 +309,7 @@ def get_status_color(percent):
     return 'var(--red)'
 
 
-def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json, sheet_targets_json):
+def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json, csv_targets_json):
     """Generate the complete dashboard HTML with all CSS and data."""
     now_cph = datetime.now(CPH_TZ)
     today = now_cph.date()
@@ -1688,7 +1666,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
     const ALL_OPPS = {all_ytd_opps_json};
     const REP_PHOTOS = {rep_photos_json};
     const REPS_CONFIG = {reps_config_json};
-    const SHEET_TARGETS = {sheet_targets_json};
+    const SHEET_TARGETS = {csv_targets_json};
     const CURRENT_YEAR = {today.year};
     const CURRENT_MONTH = {today.month};
     const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -2031,13 +2009,13 @@ def main():
         while True:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Fetching opportunities from Close...")
 
-            # Fetch dynamic targets from Google Sheet
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Fetching targets from Google Sheet...")
-            sheet_targets = fetch_targets_from_sheet()  # {user_id: {YYYY-MM: target}}
-            if sheet_targets:
-                print(f"  Loaded targets for {len(sheet_targets)} reps from sheet")
+            # Load targets from local CSV
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Loading targets from targets.csv...")
+            csv_targets = load_targets_from_csv()  # {user_id: {YYYY-MM: target}}
+            if csv_targets:
+                print(f"  Loaded targets for {len(csv_targets)} reps from targets.csv")
             else:
-                print(f"  ⚠ Using hardcoded fallback targets")
+                print(f"  ⚠ targets.csv empty or missing, using hardcoded fallback targets")
 
             # Fetch all won opportunities
             all_opps = fetch_won_opportunities()
@@ -2069,8 +2047,8 @@ def main():
 
             # Override current month targets from the sheet (if available)
             for uid in REPS:
-                if uid in sheet_targets and current_month_key in sheet_targets[uid]:
-                    REPS[uid]['target'] = sheet_targets[uid][current_month_key]
+                if uid in csv_targets and current_month_key in csv_targets[uid]:
+                    REPS[uid]['target'] = csv_targets[uid][current_month_key]
 
             # Aggregate by rep
             monthly_mrr = aggregate_by_rep(monthly_opps)
@@ -2116,14 +2094,14 @@ def main():
             # Prepare sheet targets JSON for JS month switching
             # Format: {user_id: {YYYY-MM: target}} — JS uses this to look up
             # the correct target when the user switches months
-            sheet_targets_json = json.dumps(sheet_targets)
+            csv_targets_json = json.dumps(csv_targets)
 
             # Log totals
             total = sum(monthly_mrr.get(uid, 0) for uid in REPS)
             print(f"  Total monthly MRR: DKK {total:,.2f}")
 
             # Generate HTML
-            html = generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json, sheet_targets_json)
+            html = generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deals_info, all_ytd_opps_json, rep_photos_json, csv_targets_json)
 
             # Write to file
             output_path = SCRIPT_DIR / "clerk-mrr-dashboard-live.html"
