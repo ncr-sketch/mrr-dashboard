@@ -42,16 +42,16 @@ PIPELINE_ID = "pipe_4r3PtlYGyS8nyD57HXlyyQ"
 TARGETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRvYx1TQlQOnRG0hAZdOvoWFmBEVVOE7Xvtgo4WLq1SXljnpFhJ3wQK3HlC3YFasUrRmqveEvIhbqg8/pub?output=csv"
 
 REPS = {
-    'user_yBw9tNt4WNDf34dsPFG48SpvefoK7A8zPMjfU4K4DYM': {'name': 'Robert Bengtsson', 'initials': 'RB', 'email': 'rob@clerk.io', 'target': 13182},
-    'user_7bbV5f2geHD1hLDw54p9Vr088T3yW6TSBLUs8JAMEzV': {'name': 'Peter Rossé', 'initials': 'PR', 'email': 'ptr@clerk.io', 'target': 12273},
-    'user_O0GV7AdCKCB5bOrK89NeJYyNoPYpcLjJCCUHinDgoLR': {'name': 'Anders Hildan', 'initials': 'AH', 'email': 'anh@clerk.io', 'target': 16500},
-    'user_guKLcbLohZnYhgae5FGvEK6f9ay5fTsAvOnfq6pq3gn': {'name': 'Braxton Phillips', 'initials': 'BP', 'email': 'brp@clerk.io', 'target': 16500},
+    'user_yBw9tNt4WNDf34dsPFG48SpvefoK7A8zPMjfU4K4DYM': {'name': 'Robert Bengtsson', 'initials': 'RB', 'email': 'rob@clerk.io', 'target': 11864},
+    'user_7bbV5f2geHD1hLDw54p9Vr088T3yW6TSBLUs8JAMEzV': {'name': 'Peter Rossé', 'initials': 'PR', 'email': 'ptr@clerk.io', 'target': 11046},
+    'user_O0GV7AdCKCB5bOrK89NeJYyNoPYpcLjJCCUHinDgoLR': {'name': 'Anders Hildan', 'initials': 'AH', 'email': 'anh@clerk.io', 'target': 9750},
+    'user_guKLcbLohZnYhgae5FGvEK6f9ay5fTsAvOnfq6pq3gn': {'name': 'Braxton Phillips', 'initials': 'BP', 'email': 'brp@clerk.io', 'target': 14250},
     'user_5Mkg13Ge14LxiplY5t8phIud1vfqxkVe6su6RF4IJRh': {'name': 'Arnab Deb', 'initials': 'AD', 'email': 'ade@clerk.io', 'target': 5000},
-    'user_YJuiXnlZrSDAeBGXHL7ehssMRWzxlH86jtXr7NExbss': {'name': 'Alexander Alken', 'initials': 'AA', 'email': 'aal@clerk.io', 'target': 10500},
-    'user_rgafRJqGdOmQVhsZx3fh8PcL12ASTMFm9asWvHpfDs2': {'name': 'Alexandra Beikerts', 'initials': 'AB', 'email': 'alb@clerk.io', 'target': 10500},
-    'user_SAZq4wEnfq5ILVTsn0ftwUOk2B3buDEoboxWigYg0ku': {'name': 'Daniela Drobna', 'initials': 'DD', 'email': 'ddr@clerk.io', 'target': 10500},
+    'user_YJuiXnlZrSDAeBGXHL7ehssMRWzxlH86jtXr7NExbss': {'name': 'Alexander Alken', 'initials': 'AA', 'email': 'aal@clerk.io', 'target': 9068},
+    'user_rgafRJqGdOmQVhsZx3fh8PcL12ASTMFm9asWvHpfDs2': {'name': 'Alexandra Beikerts', 'initials': 'AB', 'email': 'alb@clerk.io', 'target': 7636},
+    'user_SAZq4wEnfq5ILVTsn0ftwUOk2B3buDEoboxWigYg0ku': {'name': 'Daniela Drobna', 'initials': 'DD', 'email': 'ddr@clerk.io', 'target': 8650},
     'user_sVcAJW2NzbU6ZlfVrX4zqUp78rbJXQEyGq7tmFugyHY': {'name': 'Christian Antoniu', 'initials': 'CA', 'email': 'chn@clerk.io', 'target': 7989},
-    'user_nwSw0RV3curn6amDVD8qbiYkB02K3D7a2PN7CBZlZPa': {'name': 'Alessio Catania', 'initials': 'AC', 'email': 'alc@clerk.io', 'target': 9250},
+    'user_nwSw0RV3curn6amDVD8qbiYkB02K3D7a2PN7CBZlZPa': {'name': 'Alessio Catania', 'initials': 'AC', 'email': 'alc@clerk.io', 'target': 7636},
     'user_5pIrGaTwAhuFiCpleT0rdfI86E2HoOra853wfUuJmRx': {'name': 'Maja Krokowska', 'initials': 'MK', 'email': 'maj@clerk.io', 'target': 5000},
 }
 
@@ -212,16 +212,24 @@ def fetch_targets_from_sheet():
 
     try:
         req = urllib.request.Request(TARGETS_CSV_URL)
-        req.add_header('User-Agent', 'ClerkDashboard/1.0')
+        req.add_header('User-Agent', 'Mozilla/5.0 (compatible; ClerkDashboard/1.0)')
         with urllib.request.urlopen(req, timeout=15) as resp:
+            status = resp.getcode()
+            content_type = resp.headers.get('Content-Type', '')
             raw = resp.read().decode('utf-8-sig')  # BOM-safe
+            print(f"  Sheet fetch: HTTP {status}, Content-Type: {content_type}, {len(raw)} bytes")
+            if len(raw) < 20:
+                print(f"  ⚠ Sheet response too short: {raw[:100]}")
+                return {}
     except Exception as e:
-        print(f"  ⚠ Could not fetch targets sheet: {e}")
+        print(f"  ⚠ Could not fetch targets sheet: {type(e).__name__}: {e}")
         return {}
 
     # Parse CSV — columns: email, name, date, target
     targets = {}  # {user_id: {YYYY-MM: target_amount}}
     reader = csv.reader(io.StringIO(raw))
+    rows_parsed = 0
+    rows_matched = 0
 
     for row_num, row in enumerate(reader):
         if len(row) < 4:
@@ -234,11 +242,15 @@ def fetch_targets_from_sheet():
 
         # Skip header row if present
         if row_num == 0 and not any(c.isdigit() for c in date_raw):
+            print(f"  Skipping header row: {row}")
             continue
+
+        rows_parsed += 1
 
         # Match email to user_id
         uid = email_to_uid.get(email_raw)
         if not uid:
+            print(f"  ⚠ No matching rep for email: '{email_raw}'")
             continue
 
         # Parse the date to extract YYYY-MM
@@ -249,18 +261,23 @@ def fetch_targets_from_sheet():
             year = int(parts[2])
             month_key = f"{year}-{month:02d}"
         except (ValueError, IndexError):
+            print(f"  ⚠ Could not parse date: '{date_raw}'")
             continue
 
         # Parse target amount
         try:
             target_val = float(target_raw)
         except ValueError:
+            print(f"  ⚠ Could not parse target: '{target_raw}'")
             continue
 
         if uid not in targets:
             targets[uid] = {}
         targets[uid][month_key] = target_val
+        rows_matched += 1
+        print(f"  Target: {email_raw} → {month_key} = {target_val}")
 
+    print(f"  Sheet summary: {rows_parsed} data rows, {rows_matched} matched to reps")
     return targets
 
 
@@ -631,8 +648,10 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             background: var(--bg);
             min-height: 100vh;
             color: var(--text-primary);
-            padding: 24px 40px;
+            padding: 24px 32px;
             transition: background 0.4s ease, color 0.3s ease;
+            width: 1080px;
+            margin: 0 auto;
         }}
 
         /* ═══════════════════════════════════════════
@@ -766,18 +785,20 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             font-variant-numeric: tabular-nums;
         }}
 
-        /* Layout */
+        /* Layout — single-column portrait for vertical TV (1080×1920) */
         .layout {{
-            display: grid;
-            grid-template-columns: 380px 1fr;
-            gap: 28px;
-        }}
-
-        /* Left Panel */
-        .panel-left {{
             display: flex;
             flex-direction: column;
             gap: 20px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }}
+
+        /* Left Panel — now stacks above leaderboard */
+        .panel-left {{
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }}
 
         .card {{
@@ -825,7 +846,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
 
         .hero-value {{
-            font-size: 52px;
+            font-size: 64px;
             font-weight: 800;
             line-height: 1;
             letter-spacing: -2px;
@@ -844,10 +865,10 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 
         .hero-change svg {{ width: 14px; height: 14px; }}
 
-        /* Summary Grid */
+        /* Summary Grid — 4 tiles in portrait */
         .summary-grid {{
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
         }}
 
@@ -932,20 +953,19 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             font-weight: 700;
         }}
 
-        /* Year Leaders */
+        /* Year Leaders — horizontal strip for portrait */
         .year-leaders {{
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
         }}
 
         .year-leader {{
-            display: grid;
-            grid-template-columns: 44px 1fr auto;
-            gap: 14px;
+            display: flex;
             align-items: center;
+            gap: 12px;
             background: var(--surface-raised);
-            padding: 20px 22px;
+            padding: 16px 18px;
             border-radius: var(--radius-lg);
             border: 2px solid var(--clerk-orange);
             box-shadow: var(--shadow-sm);
@@ -957,24 +977,25 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
 
         .year-leader-rank {{
-            font-size: 30px;
+            font-size: 28px;
             text-align: center;
             line-height: 1;
+            flex-shrink: 0;
         }}
 
         .year-leader-name {{
-            font-size: 17px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--text-primary);
         }}
 
         .year-leader-amount {{
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--green);
         }}
 
-        /* Right Panel: Leaderboard */
+        /* Leaderboard — full width in portrait */
         .panel-right {{
             display: flex;
             flex-direction: column;
@@ -983,7 +1004,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         .leaderboard-card {{
             background: var(--surface);
             border-radius: var(--radius-xl);
-            padding: 28px 32px;
+            padding: 24px 28px;
             border: 1px solid var(--border);
             flex: 1;
         }}
@@ -1578,87 +1599,76 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 {ticker_html}
 
 <div class="layout">
-    <!-- Left Panel -->
-    <div class="panel-left">
 
-        <!-- Hero: Total MRR -->
-        <div class="hero-card">
-            <div class="hero-label">Total Team MRR</div>
-            <div class="hero-value" style="color: var(--green);" data-countup-currency="{total_mrr:.2f}">{format_currency(total_mrr)}</div>
-            <div class="hero-change">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                <span data-countup-pct="{achieved_pct:.0f}">{achieved_pct:.0f}%</span><span> of target</span>
-            </div>
+    <!-- Hero: Total MRR -->
+    <div class="hero-card">
+        <div class="hero-label">Total Team MRR &mdash; {current_month}</div>
+        <div class="hero-value" style="color: var(--green);" data-countup-currency="{total_mrr:.2f}">{format_currency(total_mrr)}</div>
+        <div class="hero-change">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            <span data-countup-pct="{achieved_pct:.0f}">{achieved_pct:.0f}%</span><span> of target</span>
         </div>
-
-        <!-- Summary Tiles -->
-        <div class="card" style="padding: 20px;">
-            <div class="summary-grid">
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Target</div>
-                    <div class="summary-tile-value" style="color: var(--text-primary);" data-countup="{total_target:.2f}">{format_amount(total_target)}</div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Achieved</div>
-                    <div class="summary-tile-value" style="color: {get_status_color(achieved_pct)};" data-countup-pct="{achieved_pct:.0f}">{achieved_pct:.0f}%</div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">On Track</div>
-                    <div class="summary-tile-value" style="color: {get_status_color((on_track / len(REPS)) * 100)};">{on_track}/{len(REPS)}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Days Left Countdown -->
-        <div class="countdown-card">
-            <div class="countdown-row">
-                <div class="countdown-number">{days_left}</div>
-                <div class="countdown-label">
-                    <strong>days left</strong><br>
-                    in {month_names[today.month - 1]}
-                </div>
-            </div>
-            <div class="pace-indicator">
-                Team needs <strong>{format_currency(pace_per_day)}/day</strong> to hit target
-            </div>
-        </div>
-
-        <!-- Year Leaders -->
-        <div class="card">
-            <div class="card-label">Year-to-Date Leaders</div>
-            <div class="year-leaders">{year_leaders_html}
-            </div>
-        </div>
-
     </div>
 
-    <!-- Right Panel: Leaderboard -->
-    <div class="panel-right">
-        <div class="leaderboard-card">
-            <div class="leaderboard-header">
-                <div class="leaderboard-title">Monthly MRR Leaderboard</div>
-                <select id="monthSelector" class="month-selector"></select>
-            </div>
+    <!-- Summary Strip — 4 tiles -->
+    <div class="summary-grid">
+        <div class="summary-tile">
+            <div class="summary-tile-label">Target</div>
+            <div class="summary-tile-value" style="color: var(--text-primary);" data-countup="{total_target:.2f}">{format_amount(total_target)}</div>
+        </div>
+        <div class="summary-tile">
+            <div class="summary-tile-label">Achieved</div>
+            <div class="summary-tile-value" style="color: {get_status_color(achieved_pct)};" data-countup-pct="{achieved_pct:.0f}">{achieved_pct:.0f}%</div>
+        </div>
+        <div class="summary-tile">
+            <div class="summary-tile-label">On Track</div>
+            <div class="summary-tile-value" style="color: {get_status_color((on_track / len(REPS)) * 100)};">{on_track}/{len(REPS)}</div>
+        </div>
+        <div class="summary-tile">
+            <div class="summary-tile-label">Days Left</div>
+            <div class="summary-tile-value" style="color: var(--clerk-orange);">{days_left}</div>
+        </div>
+    </div>
 
-            <div class="leaderboard-list">
+    <!-- Leaderboard — full width -->
+    <div class="leaderboard-card">
+        <div class="leaderboard-header">
+            <div class="leaderboard-title">Monthly MRR Leaderboard</div>
+            <select id="monthSelector" class="month-selector"></select>
+        </div>
+
+        <div class="leaderboard-list">
 {leaderboard_html}
-            </div>
         </div>
     </div>
-</div>
 
-<div class="footer">
-    <div class="footer-left">
-        <div class="live-indicator">
-            <div class="live-dot"></div>
-            Live
+    <!-- Year Leaders — horizontal strip -->
+    <div class="card" style="padding: 20px;">
+        <div class="card-label">Year-to-Date Leaders</div>
+        <div class="year-leaders">{year_leaders_html}
         </div>
-        <span class="footer-divider">&middot;</span>
-        <div class="clock" id="clock"></div>
     </div>
-    <div class="footer-right">
-        <span class="footer-timestamp">Last updated: {updated_time}</span> &nbsp;&middot;&nbsp; Data from Close CRM
+
+    <!-- Pace Indicator -->
+    <div class="pace-indicator" style="text-align: center; padding: 14px 20px; border-radius: var(--radius-sm);">
+        Team needs <strong>{format_currency(pace_per_day)}/day</strong> to hit target &nbsp;&middot;&nbsp; <strong>{days_left} days</strong> left in {month_names[today.month - 1]}
     </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-left">
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                Live
+            </div>
+            <span class="footer-divider">&middot;</span>
+            <div class="clock" id="clock"></div>
+        </div>
+        <div class="footer-right">
+            <span class="footer-timestamp">Last updated: {updated_time}</span> &nbsp;&middot;&nbsp; Data from Close CRM
+        </div>
+    </div>
+
 </div>
 
 <!-- Theme Toggle Button -->
@@ -1685,8 +1695,9 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 
     // ── Dark mode toggle ──
     const themeToggle = document.getElementById('themeToggle');
-    const prefersDark = localStorage.getItem('clerk-dash-theme') === 'dark';
-    if (prefersDark) {{
+    // Default to dark mode for TV display
+    const prefersLight = localStorage.getItem('clerk-dash-theme') === 'light';
+    if (!prefersLight) {{
         document.body.classList.add('dark-mode');
     }}
 
