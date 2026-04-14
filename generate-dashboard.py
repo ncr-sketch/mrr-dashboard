@@ -2017,9 +2017,16 @@ def main():
             else:
                 print(f"  ⚠ targets.csv empty or missing, using hardcoded fallback targets")
 
-            # Fetch all won opportunities
+            # Fetch all won opportunities (Closed Won + Cross-Sell Won)
             all_opps = fetch_won_opportunities()
             print(f"  Fetched {len(all_opps)} total won opportunities")
+            # Log breakdown by status for debugging
+            status_counts = {}
+            for opp in all_opps:
+                sl = opp.get('status_label', opp.get('status_id', 'unknown'))
+                status_counts[sl] = status_counts.get(sl, 0) + 1
+            for sl, cnt in status_counts.items():
+                print(f"    {sl}: {cnt} opps")
 
             # Calculate date bounds (include the FULL month and FULL year,
             # not just up to today — deals can have future close dates)
