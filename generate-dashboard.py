@@ -2015,13 +2015,35 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
     }});
 
-    // ── Tap anywhere to go fullscreen (hides TV browser toolbar) ──
-    document.addEventListener('click', () => {{
+    // ── Fullscreen management (hides TV browser toolbar) ──
+    let wantFullscreen = false;
+    function goFullscreen() {{
         const el = document.documentElement;
-        if (!document.fullscreenElement) {{
-            (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || function(){{}}).call(el);
+        const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (fn) fn.call(el).catch(() => {{}});
+    }}
+    // Tap to activate fullscreen mode
+    document.addEventListener('click', () => {{
+        wantFullscreen = true;
+        goFullscreen();
+    }});
+    // Re-enter if the browser drops fullscreen unexpectedly
+    document.addEventListener('fullscreenchange', () => {{
+        if (!document.fullscreenElement && wantFullscreen) {{
+            setTimeout(goFullscreen, 500);
         }}
     }});
+    document.addEventListener('webkitfullscreenchange', () => {{
+        if (!document.webkitFullscreenElement && wantFullscreen) {{
+            setTimeout(goFullscreen, 500);
+        }}
+    }});
+    // Periodic check as a safety net (every 30s)
+    setInterval(() => {{
+        if (wantFullscreen && !document.fullscreenElement && !document.webkitFullscreenElement) {{
+            goFullscreen();
+        }}
+    }}, 30000);
 </script>
 
 </div><!-- /tv-rotate-wrapper -->
