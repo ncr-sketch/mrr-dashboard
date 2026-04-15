@@ -623,25 +623,21 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         }}
         .tv-rotate-wrapper {{
             transform-origin: top left;
-            transform: translateY(100vh) rotate(-90deg);
-            width: 100vh;
-            height: 100vw;
-            overflow: hidden;
             position: absolute;
             top: 0;
             left: 0;
+            width: 1080px;
+            overflow: hidden;
+            padding: 24px 32px 32px;
+            background: var(--bg);
         }}
 
         body {{
             font-family: 'Poppins', sans-serif;
             background: var(--bg);
             color: var(--text-primary);
-            min-height: 1920px;
-            padding: 24px 32px 32px;
-            transition: background 0.3s ease, color 0.3s ease;
-            width: 1080px;
             margin: 0;
-            transform-origin: top left;
+            overflow: hidden;
         }}
 
         /* ═══════════════════════════════════════════
@@ -1423,12 +1419,55 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         switchTab(metricCycle[currentTabIndex]);
     }}, 10000);
 
-    // ── Scale body to fit TV viewport (designed for 1080×1920) ──
-    (function() {{
-        var scale = window.innerHeight / 1080;
-        document.body.style.transform = 'scale(' + scale + ')';
-        console.log('TV: ' + window.innerWidth + 'x' + window.innerHeight + ', scale=' + scale.toFixed(3));
-    }})();
+    // ── TV rotation: measure real viewport, scale wrapper to fill screen ──
+    function setupTV() {{
+        var w = document.getElementById('tvWrapper');
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+        var s = vh / 1080;                       // scale so 1080px content fills TV width
+        var availH = Math.ceil(vw / s);          // portrait height available
+        w.style.width = '1080px';
+        w.style.height = availH + 'px';
+        w.style.transform = 'translateY(' + vh + 'px) rotate(-90deg) scale(' + s + ')';
+        console.log('TV: ' + vw + 'x' + vh + ', scale=' + s.toFixed(3) + ', portraitH=' + availH);
+
+        // ── Auto-scroll if content overflows the visible area ──
+        setTimeout(function() {{
+            var contentH = w.scrollHeight;
+            if (contentH > availH && !w._scrolling) {{
+                w._scrolling = true;
+                var scrollMax = contentH - availH;
+                var pos = 0;
+                var speed = 40;       // px per second
+                var pauseMs = 5000;   // pause at top and bottom
+                var dir = 1;
+                var lastT = 0;
+                function tick(t) {{
+                    if (!lastT) {{ lastT = t; requestAnimationFrame(tick); return; }}
+                    var dt = (t - lastT) / 1000;
+                    lastT = t;
+                    pos += speed * dir * dt;
+                    if (pos >= scrollMax) {{
+                        pos = scrollMax; w.scrollTop = pos; dir = -1; lastT = 0;
+                        setTimeout(function() {{ requestAnimationFrame(tick); }}, pauseMs);
+                        return;
+                    }}
+                    if (pos <= 0) {{
+                        pos = 0; w.scrollTop = pos; dir = 1; lastT = 0;
+                        setTimeout(function() {{ requestAnimationFrame(tick); }}, pauseMs);
+                        return;
+                    }}
+                    w.scrollTop = pos;
+                    requestAnimationFrame(tick);
+                }}
+                setTimeout(function() {{ requestAnimationFrame(tick); }}, pauseMs);
+            }}
+        }}, 500);
+    }}
+    setupTV();
+    window.addEventListener('resize', setupTV);
+    document.addEventListener('fullscreenchange', function() {{ setTimeout(setupTV, 200); }});
+    document.addEventListener('webkitfullscreenchange', function() {{ setTimeout(setupTV, 200); }});
 
     // ── Fullscreen management (hides TV browser toolbar) ──
     let wantFullscreen = false;
