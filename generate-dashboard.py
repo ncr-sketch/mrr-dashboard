@@ -632,10 +632,9 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
         .tv-rotate-wrapper {{
             transform-origin: top left;
-            /* Default for 1920×1080; JS overrides for actual viewport */
-            transform: translateX(1920px) rotate(90deg);
-            width: 1080px;
-            height: 1920px;
+            transform: translateX(100vw) rotate(90deg);
+            width: 100vh;
+            height: 100vw;
             overflow: hidden;
             position: absolute;
             top: 0;
@@ -649,8 +648,9 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             padding: 24px 32px;
             transition: background 0.4s ease, color 0.3s ease;
             width: 1080px;
-            margin: 0 auto;
             min-height: 1920px;
+            margin: 0;
+            transform-origin: top left;
         }}
 
         /* ═══════════════════════════════════════════
@@ -2016,17 +2016,11 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
     }});
 
-    // ── Adaptive TV rotation — works at any viewport resolution ──
+    // ── Scale body to fit TV viewport (designed for 1080×1920) ──
     (function() {{
-        const wrapper = document.getElementById('tvWrapper');
-        const vw = window.innerWidth;   // TV landscape width
-        const vh = window.innerHeight;  // TV landscape height
-        // Scale: designed at 1080×1920, fit to actual viewport
-        const s = Math.min(vw / 1920, vh / 1080);
-        // +90° rotation: this TV has right edge at physical top
-        wrapper.style.transform = `translateX(${{vw}}px) rotate(90deg) scale(${{s}})`;
-        wrapper.style.transformOrigin = 'top left';
-        console.log(`TV rotation: ${{vw}}x${{vh}}, scale=${{s.toFixed(3)}}`);
+        var scale = window.innerHeight / 1080;
+        document.body.style.transform = 'scale(' + scale + ')';
+        console.log('TV: ' + window.innerWidth + 'x' + window.innerHeight + ', scale=' + scale.toFixed(3));
     }})();
 
     // ── Fullscreen management (hides TV browser toolbar) ──
