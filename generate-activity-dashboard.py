@@ -614,13 +614,34 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
 
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
+        /* ═══════════════════════════════════════════
+           TV ROTATION — rotates landscape output to
+           portrait for physically vertical TVs.
+           ═══════════════════════════════════════════ */
+        html {{
+            overflow: hidden;
+        }}
+        .tv-rotate-wrapper {{
+            transform-origin: top left;
+            transform: rotate(90deg) translateY(-100%);
+            width: 1920px;
+            height: 1080px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }}
+
         body {{
             font-family: 'Poppins', sans-serif;
             background: var(--bg);
             color: var(--text-primary);
-            min-height: 100vh;
-            padding: 24px 40px 80px;
+            min-height: 1920px;
+            padding: 24px 32px 32px;
             transition: background 0.3s ease, color 0.3s ease;
+            width: 1080px;
+            margin: 0 auto;
         }}
 
         /* ═══════════════════════════════════════════
@@ -1120,17 +1141,15 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
            FOOTER
            ═══════════════════════════════════════════ */
         .dash-footer {{
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 24px;
-            padding: 14px 40px;
-            background: var(--surface-raised);
-            border-top: 1px solid var(--border);
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
-            z-index: 50;
+            padding: 14px 24px;
+            margin-top: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
         }}
         .footer-date {{
             font-size: 14px; font-weight: 600;
@@ -1177,6 +1196,7 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
     </style>
 </head>
 <body>
+<div class="tv-rotate-wrapper" id="tvWrapper">
 
 {ticker_html}
 
@@ -1235,8 +1255,9 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
 
     // ── Dark mode toggle ──
     const themeToggle = document.getElementById('themeToggle');
-    const prefersDark = localStorage.getItem('clerk-activity-theme') === 'dark';
-    if (prefersDark) document.body.classList.add('dark-mode');
+    // Default to dark mode for TV display
+    const prefersLight = localStorage.getItem('clerk-activity-theme') === 'light';
+    if (!prefersLight) document.body.classList.add('dark-mode');
 
     themeToggle.addEventListener('click', () => {{
         document.body.classList.toggle('dark-mode');
@@ -1401,8 +1422,17 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         currentTabIndex = (currentTabIndex + 1) % metricCycle.length;
         switchTab(metricCycle[currentTabIndex]);
     }}, 10000);
+
+    // ── Tap anywhere to go fullscreen (hides TV browser toolbar) ──
+    document.addEventListener('click', () => {{
+        const el = document.documentElement;
+        if (!document.fullscreenElement) {{
+            (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || function(){{}}).call(el);
+        }}
+    }});
 </script>
 
+</div><!-- /tv-rotate-wrapper -->
 </body>
 </html>
 '''
