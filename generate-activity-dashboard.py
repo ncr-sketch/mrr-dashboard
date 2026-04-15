@@ -623,7 +623,7 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         }}
         .tv-rotate-wrapper {{
             transform-origin: top left;
-            transform: translateX(1920px) rotate(90deg);
+            transform: translateY(1080px) rotate(-90deg);
             width: 1080px;
             height: 1920px;
             overflow: hidden;
