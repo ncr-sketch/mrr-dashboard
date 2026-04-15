@@ -632,25 +632,21 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
         .tv-rotate-wrapper {{
             transform-origin: top left;
-            transform: translateX(100vw) rotate(90deg);
-            width: 100vh;
-            height: 100vw;
-            overflow: hidden;
             position: absolute;
             top: 0;
             left: 0;
+            width: 1080px;
+            overflow: hidden;
+            padding: 24px 32px;
+            background: var(--bg);
         }}
 
         body {{
             font-family: 'Poppins', sans-serif;
             background: var(--bg);
             color: var(--text-primary);
-            padding: 24px 32px;
-            transition: background 0.4s ease, color 0.3s ease;
-            width: 1080px;
-            min-height: 1920px;
             margin: 0;
-            transform-origin: top left;
+            overflow: hidden;
         }}
 
         /* ═══════════════════════════════════════════
@@ -2016,12 +2012,23 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
     }});
 
-    // ── Scale body to fit TV viewport (designed for 1080×1920) ──
-    (function() {{
-        var scale = window.innerHeight / 1080;
-        document.body.style.transform = 'scale(' + scale + ')';
-        console.log('TV: ' + window.innerWidth + 'x' + window.innerHeight + ', scale=' + scale.toFixed(3));
-    }})();
+    // ── TV rotation: measure real viewport, scale wrapper to fill screen ──
+    function setupTV() {{
+        var w = document.getElementById('tvWrapper');
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+        var s = vh / 1080;                       // scale so 1080px content fills TV width
+        var availH = Math.ceil(vw / s);          // portrait height available
+        w.style.width = '1080px';
+        w.style.height = availH + 'px';
+        w.style.minHeight = '1920px';
+        w.style.transform = 'translateX(' + vw + 'px) rotate(90deg) scale(' + s + ')';
+        console.log('TV: ' + vw + 'x' + vh + ', scale=' + s.toFixed(3) + ', portraitH=' + availH);
+    }}
+    setupTV();
+    window.addEventListener('resize', setupTV);
+    document.addEventListener('fullscreenchange', function() {{ setTimeout(setupTV, 200); }});
+    document.addEventListener('webkitfullscreenchange', function() {{ setTimeout(setupTV, 200); }});
 
     // ── Fullscreen management (hides TV browser toolbar) ──
     let wantFullscreen = false;
