@@ -632,6 +632,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
         .tv-rotate-wrapper {{
             transform-origin: top left;
+            /* Default for 1920×1080; JS overrides for actual viewport */
             transform: translateX(1920px) rotate(90deg);
             width: 1080px;
             height: 1920px;
@@ -2014,6 +2015,19 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             row.appendChild(piece);
         }}
     }});
+
+    // ── Adaptive TV rotation — works at any viewport resolution ──
+    (function() {{
+        const wrapper = document.getElementById('tvWrapper');
+        const vw = window.innerWidth;   // TV landscape width
+        const vh = window.innerHeight;  // TV landscape height
+        // Scale: designed at 1080×1920, fit to actual viewport
+        const s = Math.min(vw / 1920, vh / 1080);
+        // +90° rotation: this TV has right edge at physical top
+        wrapper.style.transform = `translateX(${{vw}}px) rotate(90deg) scale(${{s}})`;
+        wrapper.style.transformOrigin = 'top left';
+        console.log(`TV rotation: ${{vw}}x${{vh}}, scale=${{s.toFixed(3)}}`);
+    }})();
 
     // ── Fullscreen management (hides TV browser toolbar) ──
     let wantFullscreen = false;
