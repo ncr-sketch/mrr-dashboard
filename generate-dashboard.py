@@ -622,23 +622,16 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
         /* ═══════════════════════════════════════════
-           TV ROTATION — rotates landscape output to
-           portrait for physically vertical TVs.
-           The TV outputs 1920×1080; we rotate the page
-           90° so it appears as 1080×1920 when viewed.
+           LAYOUT — portrait dashboard at 1080px wide.
+           Add ?tv=cw or ?tv=ccw to the URL to enable
+           rotation for vertically-mounted TVs.
            ═══════════════════════════════════════════ */
-        html {{
-            overflow: hidden;
-        }}
         .tv-rotate-wrapper {{
-            transform-origin: top left;
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 1080px;
-            overflow: hidden;
+            margin: 0 auto;
             padding: 24px 32px;
             background: var(--bg);
+            min-height: 100vh;
         }}
 
         body {{
@@ -646,7 +639,6 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             background: var(--bg);
             color: var(--text-primary);
             margin: 0;
-            overflow: hidden;
         }}
 
         /* ═══════════════════════════════════════════
@@ -2012,53 +2004,64 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
     }});
 
-    // ── TV rotation: measure real viewport, scale wrapper to fill screen ──
-    function setupTV() {{
-        var w = document.getElementById('tvWrapper');
-        var vw = window.innerWidth;
-        var vh = window.innerHeight;
-        var s = vh / 1080;                       // scale so 1080px content fills TV width
-        var availH = Math.ceil(vw / s);          // portrait height available
-        w.style.width = '1080px';
-        w.style.height = availH + 'px';
-        w.style.minHeight = '1920px';
-        w.style.transform = 'translateX(' + vw + 'px) rotate(90deg) scale(' + s + ')';
-        console.log('TV: ' + vw + 'x' + vh + ', scale=' + s.toFixed(3) + ', portraitH=' + availH);
-    }}
-    setupTV();
-    window.addEventListener('resize', setupTV);
-    document.addEventListener('fullscreenchange', function() {{ setTimeout(setupTV, 200); }});
-    document.addEventListener('webkitfullscreenchange', function() {{ setTimeout(setupTV, 200); }});
+    // ── TV MODE: add ?tv=cw or ?tv=ccw to URL for rotated TV display ──
+    (function() {{
+        var params = new URLSearchParams(window.location.search);
+        var tvMode = params.get('tv');
+        if (!tvMode) return; // No param = normal desktop view
 
-    // ── Fullscreen management (hides TV browser toolbar) ──
-    let wantFullscreen = false;
-    function goFullscreen() {{
-        const el = document.documentElement;
-        const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-        if (fn) fn.call(el).catch(() => {{}});
-    }}
-    // Tap to activate fullscreen mode
-    document.addEventListener('click', () => {{
-        wantFullscreen = true;
-        goFullscreen();
-    }});
-    // Re-enter if the browser drops fullscreen unexpectedly
-    document.addEventListener('fullscreenchange', () => {{
-        if (!document.fullscreenElement && wantFullscreen) {{
-            setTimeout(goFullscreen, 500);
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        function setupTV() {{
+            var w = document.getElementById('tvWrapper');
+            var vw = window.innerWidth;
+            var vh = window.innerHeight;
+            var s = vh / 1080;
+            var availH = Math.ceil(vw / s);
+            w.style.position = 'absolute';
+            w.style.top = '0';
+            w.style.left = '0';
+            w.style.margin = '0';
+            w.style.width = '1080px';
+            w.style.height = availH + 'px';
+            w.style.minHeight = '1920px';
+            w.style.overflow = 'hidden';
+            w.style.transformOrigin = 'top left';
+            if (tvMode === 'ccw') {{
+                w.style.transform = 'translateY(' + vh + 'px) rotate(-90deg) scale(' + s + ')';
+            }} else {{
+                w.style.transform = 'translateX(' + vw + 'px) rotate(90deg) scale(' + s + ')';
+            }}
+            console.log('TV mode=' + tvMode + ': ' + vw + 'x' + vh + ', scale=' + s.toFixed(3));
         }}
-    }});
-    document.addEventListener('webkitfullscreenchange', () => {{
-        if (!document.webkitFullscreenElement && wantFullscreen) {{
-            setTimeout(goFullscreen, 500);
+        setupTV();
+        window.addEventListener('resize', setupTV);
+
+        // Fullscreen management — hides TV browser toolbar/sidebar
+        var wantFS = true;
+        function goFS() {{
+            var el = document.documentElement;
+            var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+            if (fn) fn.call(el).catch(function(){{}});
         }}
-    }});
-    // Periodic check as a safety net (every 30s)
-    setInterval(() => {{
-        if (wantFullscreen && !document.fullscreenElement && !document.webkitFullscreenElement) {{
-            goFullscreen();
-        }}
-    }}, 30000);
+        // Try fullscreen immediately on load
+        goFS();
+        // Also on any tap
+        document.addEventListener('click', goFS);
+        // Re-enter if dropped
+        document.addEventListener('fullscreenchange', function() {{
+            if (!document.fullscreenElement && wantFS) setTimeout(goFS, 500);
+            setTimeout(setupTV, 200);
+        }});
+        document.addEventListener('webkitfullscreenchange', function() {{
+            if (!document.webkitFullscreenElement && wantFS) setTimeout(goFS, 500);
+            setTimeout(setupTV, 200);
+        }});
+        setInterval(function() {{
+            if (wantFS && !document.fullscreenElement && !document.webkitFullscreenElement) goFS();
+        }}, 30000);
+    }})();
 </script>
 
 </div><!-- /tv-rotate-wrapper -->
