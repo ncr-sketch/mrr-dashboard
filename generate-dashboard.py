@@ -621,15 +621,36 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
 
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
+        /* ═══════════════════════════════════════════
+           TV ROTATION — rotates landscape output to
+           portrait for physically vertical TVs.
+           The TV outputs 1920×1080; we rotate the page
+           90° so it appears as 1080×1920 when viewed.
+           ═══════════════════════════════════════════ */
+        html {{
+            overflow: hidden;
+        }}
+        .tv-rotate-wrapper {{
+            transform-origin: top left;
+            transform: rotate(90deg) translateY(-100%);
+            width: 1920px;
+            height: 1080px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }}
+
         body {{
             font-family: 'Poppins', sans-serif;
             background: var(--bg);
-            min-height: 100vh;
             color: var(--text-primary);
             padding: 24px 32px;
             transition: background 0.4s ease, color 0.3s ease;
             width: 1080px;
             margin: 0 auto;
+            min-height: 1920px;
         }}
 
         /* ═══════════════════════════════════════════
@@ -1573,6 +1594,7 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
     </style>
 </head>
 <body>
+<div class="tv-rotate-wrapper" id="tvWrapper">
 
 {ticker_html}
 
@@ -1993,8 +2015,17 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             row.appendChild(piece);
         }}
     }});
+
+    // ── Tap anywhere to go fullscreen (hides TV browser toolbar) ──
+    document.addEventListener('click', () => {{
+        const el = document.documentElement;
+        if (!document.fullscreenElement) {{
+            (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || function(){{}}).call(el);
+        }}
+    }});
 </script>
 
+</div><!-- /tv-rotate-wrapper -->
 </body>
 </html>'''
 
