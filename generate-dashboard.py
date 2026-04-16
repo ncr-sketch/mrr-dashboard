@@ -173,75 +173,24 @@ def aggregate_by_rep(opps):
     return rep_mrr
 
 
-def fetch_streak_counts(all_won_opps, days=5):
-    """Count deals won per rep in the last N days.
-
-    Strategy: query Close activity log for OpportunityStatusChange events
-    where new_status_id is a won status. This tells us exactly when a deal
-    was moved to 'won', regardless of what close_at is set to.
-
-    Fallback: if the activity API fails, uses updated_at from the won
-    opportunities (less precise but better than nothing)."""
-    won_status_set = set(WON_STATUS_IDS)
-    counts = {}
+def count_streak(all_won_opps, days=5):
+    """Count deals per rep that were recently won (last N days).
+    Uses updated_at from won opportunities — since these are already filtered
+    to won statuses only, a recent updated_at reliably indicates a recent win."""
     today = datetime.now(CPH_TZ).date()
-    start_date = today - timedelta(days=days)
-    start_str = f"{start_date.isoformat()}T00:00:00"
-    end_str = f"{(today + timedelta(days=1)).isoformat()}T00:00:00"
-
-    # ── Try the activity API first ──
-    api_ok = False
-    for endpoint in ['/activity/opportunitystatuschange/', '/activity/opportunity_status_change/']:
-        try:
-            skip = 0
-            limit = 100
-            total_fetched = 0
-            while True:
-                params = {
-                    'date_created__gte': start_str,
-                    'date_created__lt': end_str,
-                    '_limit': limit,
-                    '_skip': skip,
-                }
-                response = close_api_request(endpoint, params)
-                data = response.get('data', [])
-                total_fetched += len(data)
-
-                for activity in data:
-                    new_status = activity.get('new_status_id', '')
-                    user_id = activity.get('user_id', '')
-                    if new_status in won_status_set and user_id in REPS:
-                        counts[user_id] = counts.get(user_id, 0) + 1
-
-                if not response.get('has_more', False):
-                    break
-                skip += limit
-
-            api_ok = True
-            total = sum(counts.values())
-            print(f"  Streak ({endpoint}): fetched {total_fetched} activities, {total} won-status changes across {len(counts)} reps")
-            break  # success, don't try next endpoint
-
-        except Exception as e:
-            print(f"  ⚠ Activity endpoint {endpoint} failed: {e}")
-            counts = {}
+    cutoff = (today - timedelta(days=days)).isoformat()
+    counts = {}
+    for opp in all_won_opps:
+        uid = opp.get('user_id')
+        if not uid or uid not in REPS:
             continue
-
-    # ── Fallback: use updated_at from won opps if activity API failed ──
-    if not api_ok:
-        print(f"  ⚠ Activity API unavailable, falling back to updated_at on won opps")
-        start_iso = start_date.isoformat()
-        end_iso = (today + timedelta(days=1)).isoformat()
-        for opp in all_won_opps:
-            user_id = opp.get('user_id')
-            if not user_id or user_id not in REPS:
-                continue
-            updated = opp.get('updated_at', '')[:10]
-            if updated and start_iso <= updated <= end_iso:
-                counts[user_id] = counts.get(user_id, 0) + 1
-        total = sum(counts.values())
-        print(f"  Streak (fallback): {total} recently-updated won opps across {len(counts)} reps")
-
+        updated = opp.get('updated_at', '')[:10]
+        if updated and updated >= cutoff:
+            counts[uid] = counts.get(uid, 0) + 1
+    total = sum(counts.values())
+    print(f"  Streak: {total} recently-won deals across {len(counts)} reps (last {days} days)")
+    for uid, cnt in counts.items():
+        print(f"    {REPS[uid]['name']}: {cnt} deals")
     return counts
 
 
@@ -2173,7 +2122,7 @@ def main():
             year_end = f"{today.year + 1}-01-01"
 
             # Streak: deals moved to won status in last 5 days (from Close activity log)
-            streak_counts = fetch_streak_counts(all_opps, days=5)
+            streak_counts = count_streak(all_opps, days=5)
 
             # Filter by date
             monthly_opps = filter_by_date_range(all_opps, month_start, month_end)
