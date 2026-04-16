@@ -175,31 +175,27 @@ def aggregate_by_rep(opps):
 
 def count_streak(all_won_opps, days=5):
     """Count deals per rep that were recently won (last N days).
-    Uses updated_at from won opportunities — since these are already filtered
-    to won statuses only, a recent updated_at reliably indicates a recent win."""
+    Uses date_updated from won opportunities — since these are already filtered
+    to won statuses only, a recent date_updated reliably indicates a recent win."""
     today = datetime.now(CPH_TZ).date()
     cutoff = (today - timedelta(days=days)).isoformat()
     print(f"  [STREAK DEBUG] today={today}, cutoff={cutoff}, total opps received={len(all_won_opps)}")
+    # Log first opp's keys to verify field names
+    if all_won_opps:
+        print(f"  [STREAK DEBUG] Sample opp keys: {list(all_won_opps[0].keys())}")
     counts = {}
     for opp in all_won_opps:
         uid = opp.get('user_id')
-        updated = opp.get('updated_at', '')[:10]
-        name = REPS.get(uid, {}).get('name', 'unknown')
+        # Close API uses 'date_updated' (not 'updated_at')
+        updated = (opp.get('date_updated') or opp.get('updated_at') or '')[:10]
         if not uid or uid not in REPS:
             continue
         if updated and updated >= cutoff:
             counts[uid] = counts.get(uid, 0) + 1
-            print(f"  [STREAK DEBUG] MATCH: {name} | updated_at={opp.get('updated_at')} | opp_id={opp.get('id')}")
-        else:
-            # Only log misses for the last 30 days to keep output manageable
-            if updated and updated >= (today - timedelta(days=30)).isoformat():
-                print(f"  [STREAK DEBUG] MISS: {name} | updated_at={updated} < cutoff={cutoff}")
     total = sum(counts.values())
     print(f"  Streak: {total} recently-won deals across {len(counts)} reps (last {days} days)")
     for uid, cnt in counts.items():
         print(f"    {REPS[uid]['name']}: {cnt} deals")
-    if total == 0:
-        print(f"  [STREAK DEBUG] WARNING: 0 streaks found! Check that updated_at dates are recent.")
     return counts
 
 
