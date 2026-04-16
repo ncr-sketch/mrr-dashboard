@@ -173,14 +173,28 @@ def aggregate_by_rep(opps):
     return rep_mrr
 
 
-def count_deals_by_rep(opps):
-    """Count number of deals per rep."""
+def get_won_date(opp):
+    """Get the date a deal was actually won (when status changed), not the projected close date.
+    Uses updated_at as proxy since Close doesn't expose a date_won field."""
+    for field in ['date_won', 'updated_at']:
+        val = opp.get(field)
+        if val:
+            return val[:10]  # "YYYY-MM-DD"
+    return None
+
+
+def count_recent_deals_by_rep(opps, start_date, end_date_exclusive):
+    """Count deals per rep that were WON (updated) within a date range.
+    Uses updated_at instead of close_at, since close_at is the projected date
+    and may not reflect when the deal was actually marked as won."""
     counts = {}
     for opp in opps:
         user_id = opp.get('user_id')
         if not user_id or user_id not in REPS:
             continue
-        counts[user_id] = counts.get(user_id, 0) + 1
+        won_date = get_won_date(opp)
+        if won_date and start_date <= won_date < end_date_exclusive:
+            counts[user_id] = counts.get(user_id, 0) + 1
     return counts
 
 
@@ -2111,11 +2125,10 @@ def main():
             year_start = f"{today.year}-01-01"
             year_end = f"{today.year + 1}-01-01"
 
-            # Streak: deals in the last 5 days
+            # Streak: deals actually won in the last 5 days (by updated_at, not close_at)
             five_days_ago = (today - timedelta(days=5)).isoformat()
             tomorrow = (today + timedelta(days=1)).isoformat()
-            recent_opps = filter_by_date_range(all_opps, five_days_ago, tomorrow)
-            streak_counts = count_deals_by_rep(recent_opps)
+            streak_counts = count_recent_deals_by_rep(all_opps, five_days_ago, tomorrow)
 
             # Filter by date
             monthly_opps = filter_by_date_range(all_opps, month_start, month_end)
