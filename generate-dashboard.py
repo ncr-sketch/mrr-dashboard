@@ -173,28 +173,46 @@ def aggregate_by_rep(opps):
     return rep_mrr
 
 
-def get_won_date(opp):
-    """Get the date a deal was actually won (when status changed), not the projected close date.
-    Uses updated_at as proxy since Close doesn't expose a date_won field."""
-    for field in ['date_won', 'updated_at']:
-        val = opp.get(field)
-        if val:
-            return val[:10]  # "YYYY-MM-DD"
-    return None
-
-
-def count_recent_deals_by_rep(opps, start_date, end_date_exclusive):
-    """Count deals per rep that were WON (updated) within a date range.
-    Uses updated_at instead of close_at, since close_at is the projected date
-    and may not reflect when the deal was actually marked as won."""
+def fetch_streak_counts(days=5):
+    """Count deals won per rep in the last N days by querying Close activity log.
+    Uses 'opportunity_status_change' activities where new_status_id is a won status.
+    This is the only reliable way to know WHEN a deal was actually won, since
+    close_at is the projected date and updated_at changes on any edit."""
+    won_status_set = set(WON_STATUS_IDS)
     counts = {}
-    for opp in opps:
-        user_id = opp.get('user_id')
-        if not user_id or user_id not in REPS:
-            continue
-        won_date = get_won_date(opp)
-        if won_date and start_date <= won_date < end_date_exclusive:
-            counts[user_id] = counts.get(user_id, 0) + 1
+    today = datetime.now(CPH_TZ).date()
+    start = (today - timedelta(days=days)).isoformat()
+    end = (today + timedelta(days=1)).isoformat()
+
+    try:
+        skip = 0
+        limit = 100
+        while True:
+            params = {
+                'date_created__gte': start,
+                'date_created__lt': end,
+                '_type': 'OpportunityStatusChange',
+                '_limit': limit,
+                '_skip': skip,
+            }
+            response = close_api_request('/activity/opportunitystatuschange/', params)
+            data = response.get('data', [])
+
+            for activity in data:
+                new_status = activity.get('new_status_id', '')
+                user_id = activity.get('user_id', '')
+                if new_status in won_status_set and user_id in REPS:
+                    counts[user_id] = counts.get(user_id, 0) + 1
+
+            if not response.get('has_more', False):
+                break
+            skip += limit
+
+    except Exception as e:
+        print(f"  ⚠ Could not fetch streak activities: {e}")
+
+    total = sum(counts.values())
+    print(f"  Streak: {total} won-status changes in last {days} days across {len(counts)} reps")
     return counts
 
 
@@ -2125,10 +2143,8 @@ def main():
             year_start = f"{today.year}-01-01"
             year_end = f"{today.year + 1}-01-01"
 
-            # Streak: deals actually won in the last 5 days (by updated_at, not close_at)
-            five_days_ago = (today - timedelta(days=5)).isoformat()
-            tomorrow = (today + timedelta(days=1)).isoformat()
-            streak_counts = count_recent_deals_by_rep(all_opps, five_days_ago, tomorrow)
+            # Streak: deals moved to won status in last 5 days (from Close activity log)
+            streak_counts = fetch_streak_counts(days=5)
 
             # Filter by date
             monthly_opps = filter_by_date_range(all_opps, month_start, month_end)
