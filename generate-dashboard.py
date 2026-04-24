@@ -1763,7 +1763,13 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
     // ── Month switch logic ──
     selector.addEventListener('change', () => {{
         const [year, month] = selector.value.split('-').map(Number);
-        renderMonth(year, month);
+        console.log('[MONTH SWITCH] Switching to', year, month, 'ALL_OPPS count:', ALL_OPPS.length);
+        try {{
+            renderMonth(year, month);
+            console.log('[MONTH SWITCH] renderMonth completed');
+        }} catch(e) {{
+            console.error('[MONTH SWITCH] Error in renderMonth:', e);
+        }}
     }});
 
     function renderMonth(year, month) {{
@@ -1776,10 +1782,12 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
 
         // Filter opps for this month
+        console.log('[RENDER] Range:', monthStart, 'to', monthEnd);
         const monthOpps = ALL_OPPS.filter(opp => {{
             const cd = getCloseDate(opp).substring(0, 10);
             return cd >= monthStart && cd < monthEnd;
         }});
+        console.log('[RENDER] Matched', monthOpps.length, 'opps for this month');
 
         // Aggregate by rep
         const repMrr = {{}};
