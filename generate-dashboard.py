@@ -1834,26 +1834,24 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         tiles[2].textContent = onTrack + '/' + repData.length;
         tiles[2].style.color = getStatusColor((onTrack / repData.length) * 100);
 
-        // ── Update countdown ──
+        // ── Update pace indicator ──
         const isCurrentMonth = (year === CURRENT_YEAR && month === CURRENT_MONTH);
-        const countdownCard = document.querySelector('.countdown-card');
-        if (isCurrentMonth) {{
-            const today = new Date();
-            const daysInMonth = new Date(year, month, 0).getDate();
-            const daysLeft = Math.max(daysInMonth - today.getDate(), 1);
-            const remaining = Math.max(totalTarget - totalMrr, 0);
-            const pacePerDay = remaining / daysLeft;
-            countdownCard.querySelector('.countdown-number').textContent = daysLeft;
-            countdownCard.querySelector('.countdown-label').innerHTML = '<strong>days left</strong><br>in ' + MONTH_NAMES[month - 1];
-            countdownCard.querySelector('.pace-indicator').innerHTML = 'Team needs <strong>' + formatCurrency(pacePerDay) + '/day</strong> to hit target';
-        }} else {{
-            const gap = totalMrr - totalTarget;
-            countdownCard.querySelector('.countdown-number').textContent = Math.round(achievedPct) + '%';
-            countdownCard.querySelector('.countdown-label').innerHTML = '<strong>achieved</strong><br>in ' + MONTH_NAMES[month - 1];
-            if (gap >= 0) {{
-                countdownCard.querySelector('.pace-indicator').innerHTML = 'Team exceeded target by <strong>' + formatCurrency(gap) + '</strong>';
+        const paceEl = document.querySelector('.pace-indicator');
+        if (paceEl) {{
+            if (isCurrentMonth) {{
+                const today = new Date();
+                const daysInMonth = new Date(year, month, 0).getDate();
+                const daysLeft = Math.max(daysInMonth - today.getDate(), 1);
+                const remaining = Math.max(totalTarget - totalMrr, 0);
+                const pacePerDay = remaining / daysLeft;
+                paceEl.innerHTML = 'Team needs <strong>' + formatCurrency(pacePerDay) + '/day</strong> to hit target &nbsp;&middot;&nbsp; <strong>' + daysLeft + ' days</strong> left in ' + MONTH_NAMES[month - 1];
             }} else {{
-                countdownCard.querySelector('.pace-indicator').innerHTML = 'Team was <strong>' + formatCurrency(Math.abs(gap)) + '</strong> short of target';
+                const gap = totalMrr - totalTarget;
+                if (gap >= 0) {{
+                    paceEl.innerHTML = MONTH_NAMES[month - 1] + ' ' + year + ': Team exceeded target by <strong>' + formatCurrency(gap) + '</strong> &nbsp;&middot;&nbsp; <strong>' + Math.round(achievedPct) + '%</strong> achieved';
+                }} else {{
+                    paceEl.innerHTML = MONTH_NAMES[month - 1] + ' ' + year + ': Team was <strong>' + formatCurrency(Math.abs(gap)) + '</strong> short of target &nbsp;&middot;&nbsp; <strong>' + Math.round(achievedPct) + '%</strong> achieved';
+                }}
             }}
         }}
 
