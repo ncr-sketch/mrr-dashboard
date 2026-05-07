@@ -2029,11 +2029,21 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         }}
     }});
 
-    // ── TV MODE: add ?tv=cw or ?tv=ccw to URL for rotated TV display ──
+    // ── TV MODE: add ?tv=cw or ?tv=ccw to URL, or auto-detect Samsung TV ──
     (function() {{
         var params = new URLSearchParams(window.location.search);
         var tvMode = params.get('tv');
-        if (!tvMode) return; // No param = normal desktop view
+
+        // Auto-detect Samsung Smart TV (Tizen browser) — default to clockwise rotation
+        if (!tvMode) {{
+            var ua = navigator.userAgent || '';
+            if (/SMART-TV|Tizen|Samsung/i.test(ua)) {{
+                tvMode = 'cw';
+                console.log('Auto-detected Samsung TV, using tv=cw. UA: ' + ua);
+            }}
+        }}
+
+        if (!tvMode) return; // No param and not a TV = normal desktop view
 
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
