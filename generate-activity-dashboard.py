@@ -1453,26 +1453,51 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
             }}
             console.log('TV mode=' + tvMode + ': ' + vw + 'x' + vh + ', scale=' + s.toFixed(3));
 
-            // Auto-scroll if content overflows
+            // Auto-scroll ONLY the leaderboard list — header stays pinned
             setTimeout(function() {{
-                var contentH = w.scrollHeight;
-                if (contentH > availH && !w._scrolling) {{
-                    w._scrolling = true;
-                    var scrollMax = contentH - availH;
-                    var pos = 0, speed = 40, pauseMs = 5000, dir = 1, lastT = 0;
+                var list = document.getElementById('leaderboard-list');
+                if (!list) return;
+
+                // Calculate available height for the leaderboard list
+                var ticker = document.querySelector('.activity-ticker');
+                var tabs = document.querySelector('.metric-tabs');
+                var lbHeader = document.querySelector('.leaderboard-header');
+                var footer = document.querySelector('.dash-footer');
+                var headerH = 0;
+                if (ticker) headerH += ticker.offsetHeight;
+                if (tabs) headerH += tabs.offsetHeight;
+                if (lbHeader) headerH += lbHeader.offsetHeight;
+                if (footer) headerH += footer.offsetHeight;
+                // Add some padding
+                headerH += 40;
+
+                var listH = availH - headerH;
+                if (listH < 200) listH = availH * 0.6;
+
+                list.style.maxHeight = listH + 'px';
+                list.style.overflow = 'hidden';
+
+                console.log('TV scroll: availH=' + availH + ', headerH=' + headerH + ', listH=' + listH);
+
+                // Scroll the leaderboard list
+                var contentH = list.scrollHeight;
+                if (contentH > listH && !list._scrolling) {{
+                    list._scrolling = true;
+                    var scrollMax = contentH - listH;
+                    var pos = 0, speed = 30, pauseMs = 4000, dir = 1, lastT = 0;
                     function tick(t) {{
                         if (!lastT) {{ lastT = t; requestAnimationFrame(tick); return; }}
                         pos += speed * dir * ((t - lastT) / 1000);
                         lastT = t;
                         if (pos >= scrollMax) {{
-                            pos = scrollMax; w.scrollTop = pos; dir = -1; lastT = 0;
+                            pos = scrollMax; list.scrollTop = pos; dir = -1; lastT = 0;
                             setTimeout(function() {{ requestAnimationFrame(tick); }}, pauseMs); return;
                         }}
                         if (pos <= 0) {{
-                            pos = 0; w.scrollTop = pos; dir = 1; lastT = 0;
+                            pos = 0; list.scrollTop = pos; dir = 1; lastT = 0;
                             setTimeout(function() {{ requestAnimationFrame(tick); }}, pauseMs); return;
                         }}
-                        w.scrollTop = pos;
+                        list.scrollTop = pos;
                         requestAnimationFrame(tick);
                     }}
                     setTimeout(function() {{ requestAnimationFrame(tick); }}, pauseMs);
