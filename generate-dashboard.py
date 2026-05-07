@@ -33,8 +33,9 @@ CPH_TZ = ZoneInfo("Europe/Copenhagen")
 CLOSE_API_BASE = "https://api.close.com/api/v1"
 CLOSE_API_KEY = os.environ.get("CLOSE_API_KEY", "")
 WON_STATUS_IDS = [
-    "stat_IyAn2lpFlElQQjqLVGs9Pc1TfeJqTJaN3ZX0L147a61",  # Closed Won - contract signed
-    "stat_sWOJvWOgidm8OspaJ0oiwgaAfHQtHv1kn4O5xKvZkrx",  # Cross-Sell Won
+    "stat_IyAn2lpFlElQQjqLVGs9Pc1TfeJqTJaN3ZX0L147a61",  # Closed Won - contract signed (Sales pipeline)
+    "stat_sWOJvWOgidm8OspaJ0oiwgaAfHQtHv1kn4O5xKvZkrx",  # Cross-Sell Won (Sales pipeline)
+    "stat_LYOcrd5RMk6F2IsmEZbFME1pyBKxjwsvMI0dIo9JnID",  # Cross-Sell Won (Sales Cross-Sell pipeline)
 ]
 PIPELINE_ID = "pipe_4r3PtlYGyS8nyD57HXlyyQ"
 
@@ -53,6 +54,7 @@ REPS = {
     'user_sVcAJW2NzbU6ZlfVrX4zqUp78rbJXQEyGq7tmFugyHY': {'name': 'Christian Antoniu', 'initials': 'CA', 'email': 'chn@clerk.io', 'target': 7989},
     'user_nwSw0RV3curn6amDVD8qbiYkB02K3D7a2PN7CBZlZPa': {'name': 'Alessio Catania', 'initials': 'AC', 'email': 'alc@clerk.io', 'target': 7636},
     'user_5pIrGaTwAhuFiCpleT0rdfI86E2HoOra853wfUuJmRx': {'name': 'Maja Krokowska', 'initials': 'MK', 'email': 'maj@clerk.io', 'target': 5000},
+    'user_l6GHsbgySsmkV6ScbOOGU5tJi7bYujb8XKc21jjf3zs': {'name': 'Matilde Satta', 'initials': 'MS', 'email': 'mat@clerk.io', 'target': 5000},
 }
 
 SCRIPT_DIR = Path(__file__).parent
