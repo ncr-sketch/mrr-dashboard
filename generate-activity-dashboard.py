@@ -1413,11 +1413,21 @@ def generate_html(rep_stats, ticker_items, rep_photos_json):
         switchTab(metricCycle[currentTabIndex]);
     }}, 10000);
 
-    // ── TV MODE: add ?tv=cw or ?tv=ccw to URL for rotated TV display ──
+    // ── TV MODE: add ?tv=cw or ?tv=ccw to URL, or auto-detect Samsung TV ──
     (function() {{
         var params = new URLSearchParams(window.location.search);
         var tvMode = params.get('tv');
-        if (!tvMode) return; // No param = normal desktop view
+
+        // Auto-detect Samsung Smart TV (Tizen browser) — default to ccw for activity dashboard
+        if (!tvMode) {{
+            var ua = navigator.userAgent || '';
+            if (/SMART-TV|Tizen|Samsung/i.test(ua)) {{
+                tvMode = 'ccw';
+                console.log('Auto-detected Samsung TV, using tv=ccw. UA: ' + ua);
+            }}
+        }}
+
+        if (!tvMode) return; // No param and not a TV = normal desktop view
 
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
