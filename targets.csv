@@ -1,13 +1,335 @@
 email,name,date,target
-rob@clerk.io,Robert,5/1/2026,14929
-ptr@clerk.io,Peter,5/2/2026,11571
-anh@clerk.io,Anders,5/3/2026,14929
-brp@clerk.io,Braxton,5/4/2026,14929
+rob@clerk.io,Robert,1/1/2025,10500
+ptr@clerk.io,Peter,1/2/2025,2600
+anh@clerk.io,Anders,1/3/2025,13500
+brp@clerk.io,Braxton,1/4/2025,13000
+dmg@clerk.io,David,1/5/2025,0
+mtr@clerk.io,Matteo,1/6/2025,8000
+ade@clerk.io,Arnab,1/7/2025,0
+aal@clerk.io,Alexander A.,1/8/2025,0
+alb@clerk.io,Alexandra,1/9/2025,0
+ddr@clerk.io,Daniela,1/10/2025,0
+chn@clerk.io,Christian,1/11/2025,0
+nis@clerk.io,Nidal,1/12/2025,0
+mpa@clerk.io,Marius,1/13/2025,0
+alc@clerk.io,Alessio,1/14/2025,0
+abr@clerk.io,Alexander B.,1/15/2025,5000
+maj@clerk.io,Maja,1/16/2025,0
+rob@clerk.io,Robert,2/1/2025,8500
+ptr@clerk.io,Peter,2/2/2025,10400
+anh@clerk.io,Anders,2/3/2025,13500
+brp@clerk.io,Braxton,2/4/2025,12375
+dmg@clerk.io,David,2/5/2025,2600
+mtr@clerk.io,Matteo,2/6/2025,10500
+ade@clerk.io,Arnab,2/7/2025,0
+aal@clerk.io,Alexander A.,2/8/2025,0
+alb@clerk.io,Alexandra,2/9/2025,0
+ddr@clerk.io,Daniela,2/10/2025,0
+chn@clerk.io,Christian,2/11/2025,0
+nis@clerk.io,Nidal,2/12/2025,0
+mpa@clerk.io,Marius,2/13/2025,0
+alc@clerk.io,Alessio,2/14/2025,0
+abr@clerk.io,Alexander B.,2/15/2025,5000
+maj@clerk.io,Maja,2/16/2025,0
+rob@clerk.io,Robert,3/1/2025,8674
+ptr@clerk.io,Peter,3/2/2025,13500
+anh@clerk.io,Anders,3/3/2025,3250
+brp@clerk.io,Braxton,3/4/2025,16500
+dmg@clerk.io,David,3/5/2025,7000
+mtr@clerk.io,Matteo,3/6/2025,10500
+ade@clerk.io,Arnab,3/7/2025,0
+aal@clerk.io,Alexander A.,3/8/2025,0
+alb@clerk.io,Alexandra,3/9/2025,0
+ddr@clerk.io,Daniela,3/10/2025,0
+chn@clerk.io,Christian,3/11/2025,0
+nis@clerk.io,Nidal,3/12/2025,0
+mpa@clerk.io,Marius,3/13/2025,0
+alc@clerk.io,Alessio,3/14/2025,0
+abr@clerk.io,Alexander B.,3/15/2025,5000
+maj@clerk.io,Maja,3/16/2025,0
+mab@clerk.io,Marta,3/17/2025,3300
+rob@clerk.io,Robert,4/1/2025,10500
+ptr@clerk.io,Peter,4/2/2025,13500
+anh@clerk.io,Anders,4/3/2025,0
+brp@clerk.io,Braxton,4/4/2025,14348
+dmg@clerk.io,David,4/5/2025,11740
+mtr@clerk.io,Matteo,4/6/2025,8218
+ade@clerk.io,Arnab,4/7/2025,0
+aal@clerk.io,Alexander A.,4/8/2025,0
+alb@clerk.io,Alexandra,4/9/2025,0
+ddr@clerk.io,Daniela,4/10/2025,0
+chn@clerk.io,Christian,4/11/2025,0
+nis@clerk.io,Nidal,4/12/2025,0
+mpa@clerk.io,Marius,4/13/2025,0
+alc@clerk.io,Alessio,4/14/2025,0
+abr@clerk.io,Alexander B.,4/15/2025,5000
+maj@clerk.io,Maja,4/16/2025,0
+mab@clerk.io,Marta,4/17/2025,13200
+rob@clerk.io,Robert,5/1/2025,10500
+ptr@clerk.io,Peter,5/2/2025,13500
+anh@clerk.io,Anders,5/3/2025,0
+brp@clerk.io,Braxton,5/4/2025,16500
+dmg@clerk.io,David,5/5/2025,13500
+mtr@clerk.io,Matteo,5/6/2025,10500
+ade@clerk.io,Arnab,5/7/2025,1850
+aal@clerk.io,Alexander A.,5/8/2025,2100
+alb@clerk.io,Alexandra,5/9/2025,0
+ddr@clerk.io,Daniela,5/10/2025,0
+chn@clerk.io,Christian,5/11/2025,0
+nis@clerk.io,Nidal,5/12/2025,0
+mpa@clerk.io,Marius,5/13/2025,0
+alc@clerk.io,Alessio,5/14/2025,0
+abr@clerk.io,Alexander B.,5/15/2025,5000
+maj@clerk.io,Maja,5/16/2025,0
+mab@clerk.io,Marta,5/17/2025,16500
+rob@clerk.io,Robert,6/1/2025,10500
+ptr@clerk.io,Peter,6/2/2025,13500
+anh@clerk.io,Anders,6/3/2025,0
+brp@clerk.io,Braxton,6/4/2025,16500
+dmg@clerk.io,David,6/5/2025,13500
+mtr@clerk.io,Matteo,6/6/2025,10500
+ade@clerk.io,Arnab,6/7/2025,7400
+aal@clerk.io,Alexander A.,6/8/2025,8400
+alb@clerk.io,Alexandra,6/9/2025,2100
+ddr@clerk.io,Daniela,6/10/2025,0
+chn@clerk.io,Christian,6/11/2025,0
+nis@clerk.io,Nidal,6/12/2025,0
+mpa@clerk.io,Marius,6/13/2025,0
+alc@clerk.io,Alessio,6/14/2025,0
+abr@clerk.io,Alexander B.,6/15/2025,5000
+maj@clerk.io,Maja,6/16/2025,0
+mab@clerk.io,Marta,6/17/2025,16500
+rob@clerk.io,Robert,7/1/2025,10500
+ptr@clerk.io,Peter,7/2/2025,5086
+anh@clerk.io,Anders,7/3/2025,9043
+brp@clerk.io,Braxton,7/4/2025,16500
+dmg@clerk.io,David,7/5/2025,13500
+mtr@clerk.io,Matteo,7/6/2025,14500
+ade@clerk.io,Arnab,7/7/2025,9250
+aal@clerk.io,Alexander A.,7/8/2025,10500
+alb@clerk.io,Alexandra,7/9/2025,8400
+ddr@clerk.io,Daniela,7/10/2025,0
+chn@clerk.io,Christian,7/11/2025,0
+nis@clerk.io,Nidal,7/12/2025,0
+mpa@clerk.io,Marius,7/13/2025,0
+alc@clerk.io,Alessio,7/14/2025,0
+abr@clerk.io,Alexander B.,7/15/2025,5000
+maj@clerk.io,Maja,7/16/2025,0
+mab@clerk.io,Marta,7/17/2025,16500
+rob@clerk.io,Robert,8/1/2025,10500
+ptr@clerk.io,Peter,8/2/2025,0
+anh@clerk.io,Anders,8/3/2025,6810
+brp@clerk.io,Braxton,8/4/2025,16500
+dmg@clerk.io,David,8/5/2025,10286
+mtr@clerk.io,Matteo,8/6/2025,7595
+ade@clerk.io,Arnab,8/7/2025,9250
+aal@clerk.io,Alexander A.,8/8/2025,10500
+alb@clerk.io,Alexandra,8/9/2025,10500
+ddr@clerk.io,Daniela,8/10/2025,0
+chn@clerk.io,Christian,8/11/2025,0
+nis@clerk.io,Nidal,8/12/2025,0
+mpa@clerk.io,Marius,8/13/2025,0
+alc@clerk.io,Alessio,8/14/2025,0
+abr@clerk.io,Alexander B.,8/15/2025,5000
+maj@clerk.io,Maja,8/16/2025,0
+rob@clerk.io,Robert,9/1/2025,10500
+ptr@clerk.io,Peter,9/2/2025,9455
+anh@clerk.io,Anders,9/3/2025,13500
+brp@clerk.io,Braxton,9/4/2025,16500
+dmg@clerk.io,David,9/5/2025,13500
+mtr@clerk.io,Matteo,9/6/2025,14500
+ade@clerk.io,Arnab,9/7/2025,9250
+aal@clerk.io,Alexander A.,9/8/2025,10500
+alb@clerk.io,Alexandra,9/9/2025,10500
+ddr@clerk.io,Daniela,9/11/2025,2100
+chn@clerk.io,Christian,9/12/2025,1850
+nis@clerk.io,Nidal,9/13/2025,0
+mpa@clerk.io,Marius,9/14/2025,0
+alc@clerk.io,Alessio,9/15/2025,0
+abr@clerk.io,Alexander B.,9/16/2025,5000
+maj@clerk.io,Maja,9/17/2025,0
+rob@clerk.io,Robert,10/1/2025,10500
+ptr@clerk.io,Peter,10/2/2025,10565
+anh@clerk.io,Anders,10/3/2025,13500
+brp@clerk.io,Braxton,10/4/2025,16500
+dmg@clerk.io,David,10/5/2025,13500
+mtr@clerk.io,Matteo,10/6/2025,13239
+ade@clerk.io,Arnab,10/7/2025,5000
+aal@clerk.io,Alexander A.,10/8/2025,10500
+alb@clerk.io,Alexandra,10/9/2025,6848
+ddr@clerk.io,Daniela,10/11/2025,7670
+chn@clerk.io,Christian,10/12/2025,7400
+nis@clerk.io,Nidal,10/13/2025,2100
+mpa@clerk.io,Marius,10/14/2025,2100
+alc@clerk.io,Alessio,10/15/2025,1850
+abr@clerk.io,Alexander B.,10/16/2025,5000
+maj@clerk.io,Maja,10/17/2025,1000
+rob@clerk.io,Robert,11/1/2025,14500
+ptr@clerk.io,Peter,11/2/2025,12150
+anh@clerk.io,Anders,11/3/2025,16500
+brp@clerk.io,Braxton,11/4/2025,9075
+mtr@clerk.io,Matteo,11/6/2025,7250
+ade@clerk.io,Arnab,11/7/2025,5000
+aal@clerk.io,Alexander A.,11/8/2025,9450
+alb@clerk.io,Alexandra,11/9/2025,6300
+ddr@clerk.io,Daniela,11/11/2025,9450
+chn@clerk.io,Christian,11/12/2025,9250
+nis@clerk.io,Nidal,11/13/2025,8400
+alc@clerk.io,Alessio,11/15/2025,7400
+maj@clerk.io,Maja,11/17/2025,4000
+rob@clerk.io,Robert,12/1/2025,8510.8
+ptr@clerk.io,Peter,12/2/2025,11152.1
+anh@clerk.io,Anders,12/3/2025,13630.6
+brp@clerk.io,Braxton,12/4/2025,10043.6
+mtr@clerk.io,Matteo,12/6/2025,11978.2
+ade@clerk.io,Arnab,12/7/2025,5000
+aal@clerk.io,Alexander A.,12/8/2025,6847.8
+alb@clerk.io,Alexandra,12/9/2025,7532.6
+ddr@clerk.io,Daniela,12/10/2025,5934.8
+chn@clerk.io,Christian,12/11/2025,6032.6
+nis@clerk.io,Nidal,12/12/2025,8673.9
+alc@clerk.io,Alessio,12/14/2025,7641.2
+maj@clerk.io,Maja,12/16/2025,5000
+rob@clerk.io,Robert,1/1/2026,13809
+ptr@clerk.io,Peter,1/2/2026,13500
+anh@clerk.io,Anders,1/3/2026,15714
+brp@clerk.io,Braxton,1/4/2026,11000
+mtr@clerk.io,Matteo,1/5/2026,14500
+ade@clerk.io,Arnab,1/6/2026,5000
+aal@clerk.io,Alexander A.,1/7/2026,8500
+alb@clerk.io,Alexandra,1/8/2026,9750
+ddr@clerk.io,Daniela,1/9/2026,10500
+chn@clerk.io,Christian,1/10/2026,9250
+nis@clerk.io,Nidal,1/11/2026,10000
+alc@clerk.io,Alessio,1/12/2026,2202
+maj@clerk.io,Maja,1/13/2026,5000
+rob@clerk.io,Robert,2/1/2026,14500
+ptr@clerk.io,Peter,2/2/2026,13500
+anh@clerk.io,Anders,2/3/2026,16500
+brp@clerk.io,Braxton,2/4/2026,14850
+mtr@clerk.io,Matteo,2/5/2026,14500
+ade@clerk.io,Arnab,2/6/2026,5000
+aal@clerk.io,Alexander A.,2/7/2026,10500
+alb@clerk.io,Alexandra,2/8/2026,9975
+ddr@clerk.io,Daniela,2/9/2026,8400
+chn@clerk.io,Christian,2/10/2026,9250
+alc@clerk.io,Alessio,2/11/2026,9250
+maj@clerk.io,Maja,2/12/2026,5000
+rob@clerk.io,Robert,3/1/2026,13182
+ptr@clerk.io,Peter,3/2/2026,12273
+anh@clerk.io,Anders,3/3/2026,16500
+brp@clerk.io,Braxton,3/4/2026,16500
+ade@clerk.io,Arnab,3/6/2026,5000
+aal@clerk.io,Alexander A.,3/7/2026,10500
+alb@clerk.io,Alexandra,3/8/2026,10500
+ddr@clerk.io,Daniela,3/9/2026,10500
+chn@clerk.io,Christian,3/10/2026,7989
+alc@clerk.io,Alessio,3/11/2026,9250
+maj@clerk.io,Maja,3/12/2026,5000
+rob@clerk.io,Robert,4/1/2026,11864
+ptr@clerk.io,Peter,4/2/2026,11046
+anh@clerk.io,Anders,4/3/2026,9750
+brp@clerk.io,Braxton,4/4/2026,14250
+ade@clerk.io,Arnab,4/5/2026,5000
+aal@clerk.io,Alexander A.,4/6/2026,9068
+alb@clerk.io,Alexandra,4/7/2026,7636
+ddr@clerk.io,Daniela,4/8/2026,8590
+chn@clerk.io,Christian,4/9/2026,7989
+alc@clerk.io,Alessio,4/10/2026,7989
+maj@clerk.io,Maja,4/11/2026,5000
+rob@clerk.io,Robert,5/1/2026,16500
+ptr@clerk.io,Peter,5/2/2026,13500
+anh@clerk.io,Anders,5/3/2026,16500
+brp@clerk.io,Braxton,5/4/2026,16500
 ade@clerk.io,Arnab,5/5/2026,7232
-aal@clerk.io,Alexander A.,5/6/2026,9500
-alb@clerk.io,Alexandra,5/7/2026,9500
-ddr@clerk.io,Daniela,5/8/2026,9000
-chn@clerk.io,Christian,5/9/2026,8369
-alc@clerk.io,Alessio,5/10/2026,8369
+aal@clerk.io,Alexander A.,5/6/2026,10500
+alb@clerk.io,Alexandra,5/7/2026,10500
+ddr@clerk.io,Daniela,5/8/2026,10500
+chn@clerk.io,Christian,5/9/2026,9250
+alc@clerk.io,Alessio,5/10/2026,9250
 maj@clerk.io,Maja,5/11/2026,5000
 mat@clerk.io,Matilde,5/12/2026,2624
+rob@clerk.io,Robert,6/1/2026,14500
+ptr@clerk.io,Peter,6/2/2026,13500
+anh@clerk.io,Anders,6/3/2026,16500
+brp@clerk.io,Braxton,6/4/2026,16500
+ade@clerk.io,Arnab,6/5/2026,7232
+aal@clerk.io,Alexander A.,6/6/2026,10500
+alb@clerk.io,Alexandra,6/7/2026,10500
+ddr@clerk.io,Daniela,6/8/2026,10500
+chn@clerk.io,Christian,6/9/2026,9250
+alc@clerk.io,Alessio,6/10/2026,9250
+maj@clerk.io,Maja,6/11/2026,5000
+mat@clerk.io,Matilde,6/12/2026,7500
+rob@clerk.io,Robert,7/1/2026,14500
+ptr@clerk.io,Peter,7/2/2026,13500
+anh@clerk.io,Anders,7/3/2026,16500
+brp@clerk.io,Braxton,7/4/2026,16500
+ade@clerk.io,Arnab,7/5/2026,7232
+aal@clerk.io,Alexander A.,7/6/2026,10500
+alb@clerk.io,Alexandra,7/7/2026,10500
+ddr@clerk.io,Daniela,7/8/2026,10500
+chn@clerk.io,Christian,7/9/2026,9250
+alc@clerk.io,Alessio,7/10/2026,9250
+maj@clerk.io,Maja,7/11/2026,5000
+mat@clerk.io,Matilde,7/12/2026,11600
+rob@clerk.io,Robert,8/1/2026,14500
+ptr@clerk.io,Peter,8/2/2026,13500
+anh@clerk.io,Anders,8/3/2026,16500
+brp@clerk.io,Braxton,8/4/2026,16500
+ade@clerk.io,Arnab,8/5/2026,7232
+aal@clerk.io,Alexander A.,8/6/2026,10500
+alb@clerk.io,Alexandra,8/7/2026,10500
+ddr@clerk.io,Daniela,8/8/2026,10500
+chn@clerk.io,Christian,8/9/2026,9250
+alc@clerk.io,Alessio,8/10/2026,9250
+maj@clerk.io,Maja,8/11/2026,5000
+mat@clerk.io,Matilde,8/12/2026,14500
+rob@clerk.io,Robert,9/1/2026,14500
+ptr@clerk.io,Peter,9/2/2026,13500
+anh@clerk.io,Anders,9/3/2026,16500
+brp@clerk.io,Braxton,9/4/2026,16500
+ade@clerk.io,Arnab,9/5/2026,7232
+aal@clerk.io,Alexander A.,9/6/2026,10500
+alb@clerk.io,Alexandra,9/7/2026,10500
+ddr@clerk.io,Daniela,9/8/2026,10500
+chn@clerk.io,Christian,9/9/2026,9250
+alc@clerk.io,Alessio,9/10/2026,9250
+maj@clerk.io,Maja,9/11/2026,5000
+mat@clerk.io,Matilde,9/12/2026,14500
+rob@clerk.io,Robert,10/1/2026,14500
+ptr@clerk.io,Peter,10/2/2026,13500
+anh@clerk.io,Anders,10/3/2026,16500
+brp@clerk.io,Braxton,10/4/2026,16500
+ade@clerk.io,Arnab,10/5/2026,7232
+aal@clerk.io,Alexander A.,10/6/2026,10500
+alb@clerk.io,Alexandra,10/7/2026,10500
+ddr@clerk.io,Daniela,10/8/2026,10500
+chn@clerk.io,Christian,10/9/2026,9250
+alc@clerk.io,Alessio,10/10/2026,9250
+maj@clerk.io,Maja,10/11/2026,5000
+mat@clerk.io,Matilde,10/12/2026,14500
+rob@clerk.io,Robert,11/1/2026,14500
+ptr@clerk.io,Peter,11/2/2026,13500
+anh@clerk.io,Anders,11/3/2026,16500
+brp@clerk.io,Braxton,11/4/2026,16500
+ade@clerk.io,Arnab,11/5/2026,7232
+aal@clerk.io,Alexander A.,11/6/2026,10500
+alb@clerk.io,Alexandra,11/7/2026,10500
+ddr@clerk.io,Daniela,11/8/2026,10500
+chn@clerk.io,Christian,11/9/2026,9250
+alc@clerk.io,Alessio,11/10/2026,9250
+maj@clerk.io,Maja,11/11/2026,5000
+mat@clerk.io,Matilde,11/12/2026,14500
+rob@clerk.io,Robert,12/1/2026,14500
+ptr@clerk.io,Peter,12/2/2026,13500
+anh@clerk.io,Anders,12/3/2026,16500
+brp@clerk.io,Braxton,12/4/2026,16500
+ade@clerk.io,Arnab,12/5/2026,7232
+aal@clerk.io,Alexander A.,12/6/2026,10500
+alb@clerk.io,Alexandra,12/7/2026,10500
+ddr@clerk.io,Daniela,12/8/2026,10500
+chn@clerk.io,Christian,12/9/2026,9250
+alc@clerk.io,Alessio,12/10/2026,9250
+maj@clerk.io,Maja,12/11/2026,5000
+mat@clerk.io,Matilde,12/12/2026,14500
