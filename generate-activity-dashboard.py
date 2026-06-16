@@ -43,7 +43,7 @@ REPS = {
     'user_rgafRJqGdOmQVhsZx3fh8PcL12ASTMFm9asWvHpfDs2': {'name': 'Alexandra Beikerts', 'initials': 'AB', 'email': 'alb@clerk.io'},
     'user_SAZq4wEnfq5ILVTsn0ftwUOk2B3buDEoboxWigYg0ku': {'name': 'Daniela Drobna', 'initials': 'DD', 'email': 'ddr@clerk.io'},
     'user_sVcAJW2NzbU6ZlfVrX4zqUp78rbJXQEyGq7tmFugyHY': {'name': 'Christian Antoniu', 'initials': 'CA', 'email': 'chn@clerk.io'},
-    'user_nwSw0RV3curn6amDVD8qbiYkB02K3D7a2PN7CBZlZPa': {'name': 'Alessio Catania', 'initials': 'AC', 'email': 'alc@clerk.io'},
+    'user_b4ZJmedajiYxdyxgEwmQNAPZUdhRJLUbw92H9PhSJPq': {'name': 'Carolina Lass', 'initials': 'CL', 'email': 'cal@clerk.io'},
     'user_5pIrGaTwAhuFiCpleT0rdfI86E2HoOra853wfUuJmRx': {'name': 'Maja Krokowska', 'initials': 'MK', 'email': 'maj@clerk.io'},
 }
 
