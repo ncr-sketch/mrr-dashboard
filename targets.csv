@@ -254,13 +254,13 @@ ptr@clerk.io,Peter,6/2/2026,13500
 anh@clerk.io,Anders,6/3/2026,16500
 brp@clerk.io,Braxton,6/4/2026,16500
 ade@clerk.io,Arnab,6/5/2026,7232
-aal@clerk.io,Alexander A.,6/6/2026,10500
-alb@clerk.io,Alexandra,6/7/2026,10500
-ddr@clerk.io,Daniela,6/8/2026,10500
+aal@clerk.io,Alexander A.,6/6/2026,4773
+alb@clerk.io,Alexandra,6/7/2026,6821
+ddr@clerk.io,Daniela,6/8/2026,0
 chn@clerk.io,Christian,6/9/2026,9250
-alc@clerk.io,Alessio,6/10/2026,9250
-maj@clerk.io,Maja,6/11/2026,5000
-mat@clerk.io,Matilde,6/12/2026,7500
+maj@clerk.io,Maja,6/10/2026,5000
+mat@clerk.io,Matilde,6/11/2026,7250
+cal@clerk.io,Carolina,6/12/2026,2700
 rob@clerk.io,Robert,7/1/2026,14500
 ptr@clerk.io,Peter,7/2/2026,13500
 anh@clerk.io,Anders,7/3/2026,16500
@@ -270,7 +270,7 @@ aal@clerk.io,Alexander A.,7/6/2026,10500
 alb@clerk.io,Alexandra,7/7/2026,10500
 ddr@clerk.io,Daniela,7/8/2026,10500
 chn@clerk.io,Christian,7/9/2026,9250
-alc@clerk.io,Alessio,7/10/2026,9250
+cal@clerk.io,Carolina,7/10/2026,10800
 maj@clerk.io,Maja,7/11/2026,5000
 mat@clerk.io,Matilde,7/12/2026,11600
 rob@clerk.io,Robert,8/1/2026,14500
@@ -282,7 +282,7 @@ aal@clerk.io,Alexander A.,8/6/2026,10500
 alb@clerk.io,Alexandra,8/7/2026,10500
 ddr@clerk.io,Daniela,8/8/2026,10500
 chn@clerk.io,Christian,8/9/2026,9250
-alc@clerk.io,Alessio,8/10/2026,9250
+cal@clerk.io,Carolina,8/10/2026,13500
 maj@clerk.io,Maja,8/11/2026,5000
 mat@clerk.io,Matilde,8/12/2026,14500
 rob@clerk.io,Robert,9/1/2026,14500
@@ -294,7 +294,7 @@ aal@clerk.io,Alexander A.,9/6/2026,10500
 alb@clerk.io,Alexandra,9/7/2026,10500
 ddr@clerk.io,Daniela,9/8/2026,10500
 chn@clerk.io,Christian,9/9/2026,9250
-alc@clerk.io,Alessio,9/10/2026,9250
+cal@clerk.io,Carolina,9/10/2026,13500
 maj@clerk.io,Maja,9/11/2026,5000
 mat@clerk.io,Matilde,9/12/2026,14500
 rob@clerk.io,Robert,10/1/2026,14500
@@ -306,7 +306,7 @@ aal@clerk.io,Alexander A.,10/6/2026,10500
 alb@clerk.io,Alexandra,10/7/2026,10500
 ddr@clerk.io,Daniela,10/8/2026,10500
 chn@clerk.io,Christian,10/9/2026,9250
-alc@clerk.io,Alessio,10/10/2026,9250
+cal@clerk.io,Carolina,10/10/2026,13500
 maj@clerk.io,Maja,10/11/2026,5000
 mat@clerk.io,Matilde,10/12/2026,14500
 rob@clerk.io,Robert,11/1/2026,14500
@@ -318,7 +318,7 @@ aal@clerk.io,Alexander A.,11/6/2026,10500
 alb@clerk.io,Alexandra,11/7/2026,10500
 ddr@clerk.io,Daniela,11/8/2026,10500
 chn@clerk.io,Christian,11/9/2026,9250
-alc@clerk.io,Alessio,11/10/2026,9250
+cal@clerk.io,Carolina,11/10/2026,13500
 maj@clerk.io,Maja,11/11/2026,5000
 mat@clerk.io,Matilde,11/12/2026,14500
 rob@clerk.io,Robert,12/1/2026,14500
@@ -330,6 +330,6 @@ aal@clerk.io,Alexander A.,12/6/2026,10500
 alb@clerk.io,Alexandra,12/7/2026,10500
 ddr@clerk.io,Daniela,12/8/2026,10500
 chn@clerk.io,Christian,12/9/2026,9250
-alc@clerk.io,Alessio,12/10/2026,9250
+cal@clerk.io,Carolina,12/10/2026,13500
 maj@clerk.io,Maja,12/11/2026,5000
 mat@clerk.io,Matilde,12/12/2026,14500
