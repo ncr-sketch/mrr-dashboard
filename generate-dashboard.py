@@ -52,7 +52,7 @@ REPS = {
     'user_rgafRJqGdOmQVhsZx3fh8PcL12ASTMFm9asWvHpfDs2': {'name': 'Alexandra Beikerts', 'initials': 'AB', 'email': 'alb@clerk.io', 'target': 7636},
     'user_SAZq4wEnfq5ILVTsn0ftwUOk2B3buDEoboxWigYg0ku': {'name': 'Daniela Drobna', 'initials': 'DD', 'email': 'ddr@clerk.io', 'target': 8650},
     'user_sVcAJW2NzbU6ZlfVrX4zqUp78rbJXQEyGq7tmFugyHY': {'name': 'Christian Antoniu', 'initials': 'CA', 'email': 'chn@clerk.io', 'target': 7989},
-    'user_nwSw0RV3curn6amDVD8qbiYkB02K3D7a2PN7CBZlZPa': {'name': 'Alessio Catania', 'initials': 'AC', 'email': 'alc@clerk.io', 'target': 7636},
+    'user_b4ZJmedajiYxdyxgEwmQNAPZUdhRJLUbw92H9PhSJPq': {'name': 'Carolina Lass', 'initials': 'CL', 'email': 'cal@clerk.io', 'target': 7636},
     'user_5pIrGaTwAhuFiCpleT0rdfI86E2HoOra853wfUuJmRx': {'name': 'Maja Krokowska', 'initials': 'MK', 'email': 'maj@clerk.io', 'target': 5000},
     'user_l6GHsbgySsmkV6ScbOOGU5tJi7bYujb8XKc21jjf3zs': {'name': 'Matilde Satta', 'initials': 'MS', 'email': 'mat@clerk.io', 'target': 5000},
 }
