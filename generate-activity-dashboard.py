@@ -39,8 +39,6 @@ REPS = {
     'user_O0GV7AdCKCB5bOrK89NeJYyNoPYpcLjJCCUHinDgoLR': {'name': 'Anders Hildan', 'initials': 'AH', 'email': 'anh@clerk.io'},
     'user_guKLcbLohZnYhgae5FGvEK6f9ay5fTsAvOnfq6pq3gn': {'name': 'Braxton Phillips', 'initials': 'BP', 'email': 'brp@clerk.io'},
     'user_5Mkg13Ge14LxiplY5t8phIud1vfqxkVe6su6RF4IJRh': {'name': 'Arnab Deb', 'initials': 'AD', 'email': 'ade@clerk.io'},
-    'user_YJuiXnlZrSDAeBGXHL7ehssMRWzxlH86jtXr7NExbss': {'name': 'Alexander Alken', 'initials': 'AA', 'email': 'aal@clerk.io'},
-    'user_rgafRJqGdOmQVhsZx3fh8PcL12ASTMFm9asWvHpfDs2': {'name': 'Alexandra Beikerts', 'initials': 'AB', 'email': 'alb@clerk.io'},
     'user_SAZq4wEnfq5ILVTsn0ftwUOk2B3buDEoboxWigYg0ku': {'name': 'Daniela Drobna', 'initials': 'DD', 'email': 'ddr@clerk.io'},
     'user_sVcAJW2NzbU6ZlfVrX4zqUp78rbJXQEyGq7tmFugyHY': {'name': 'Christian Antoniu', 'initials': 'CA', 'email': 'chn@clerk.io'},
     'user_b4ZJmedajiYxdyxgEwmQNAPZUdhRJLUbw92H9PhSJPq': {'name': 'Carolina Lass', 'initials': 'CL', 'email': 'cal@clerk.io'},
