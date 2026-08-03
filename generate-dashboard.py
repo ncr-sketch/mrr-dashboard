@@ -32,6 +32,10 @@ CPH_TZ = ZoneInfo("Europe/Copenhagen")
 # ── Configuration ─────────────────────────────────────────────────────────────
 CLOSE_API_BASE = "https://api.close.com/api/v1"
 CLOSE_API_KEY = os.environ.get("CLOSE_API_KEY", "")
+# Custom field ID for "Subscription Start Date" (date type)
+# In the raw Close API, custom fields appear as top-level keys: custom.cf_XXX
+SUBSCRIPTION_START_DATE_FIELD = 'custom.cf_xEh5e1wbSGZSKvFtB5qrpdUCgDuUs06L0ZiLrPlhukk'
+
 WON_STATUS_IDS = [
     "stat_IyAn2lpFlElQQjqLVGs9Pc1TfeJqTJaN3ZX0L147a61",  # Closed Won - contract signed (Sales pipeline)
     "stat_sWOJvWOgidm8OspaJ0oiwgaAfHQtHv1kn4O5xKvZkrx",  # Cross-Sell Won (Sales pipeline)
@@ -48,8 +52,6 @@ REPS = {
     'user_O0GV7AdCKCB5bOrK89NeJYyNoPYpcLjJCCUHinDgoLR': {'name': 'Anders Hildan', 'initials': 'AH', 'email': 'anh@clerk.io', 'target': 9750},
     'user_guKLcbLohZnYhgae5FGvEK6f9ay5fTsAvOnfq6pq3gn': {'name': 'Braxton Phillips', 'initials': 'BP', 'email': 'brp@clerk.io', 'target': 14250},
     'user_5Mkg13Ge14LxiplY5t8phIud1vfqxkVe6su6RF4IJRh': {'name': 'Arnab Deb', 'initials': 'AD', 'email': 'ade@clerk.io', 'target': 5000},
-    'user_YJuiXnlZrSDAeBGXHL7ehssMRWzxlH86jtXr7NExbss': {'name': 'Alexander Alken', 'initials': 'AA', 'email': 'aal@clerk.io', 'target': 9068},
-    'user_rgafRJqGdOmQVhsZx3fh8PcL12ASTMFm9asWvHpfDs2': {'name': 'Alexandra Beikerts', 'initials': 'AB', 'email': 'alb@clerk.io', 'target': 7636},
     'user_SAZq4wEnfq5ILVTsn0ftwUOk2B3buDEoboxWigYg0ku': {'name': 'Daniela Drobna', 'initials': 'DD', 'email': 'ddr@clerk.io', 'target': 8650},
     'user_sVcAJW2NzbU6ZlfVrX4zqUp78rbJXQEyGq7tmFugyHY': {'name': 'Christian Antoniu', 'initials': 'CA', 'email': 'chn@clerk.io', 'target': 7989},
     'user_b4ZJmedajiYxdyxgEwmQNAPZUdhRJLUbw92H9PhSJPq': {'name': 'Carolina Lass', 'initials': 'CL', 'email': 'cal@clerk.io', 'target': 7636},
@@ -129,12 +131,35 @@ def fetch_won_opportunities():
     return opportunities
 
 
-def get_close_date(opp):
-    """Extract close date string from opportunity, trying multiple field names."""
+def get_effective_date(opp):
+    """Get the effective start date for MRR tracking.
+
+    New system (from July 2025): 'Subscription Start Date' custom field
+    tracks when MRR begins. Close Date now means signature date.
+    Old system (pre-July 2025): Close Date was the subscription start date.
+
+    Logic: use Subscription Start Date if set, otherwise fall back to Close Date.
+    """
+    # New system: Subscription Start Date takes priority
+    sub_start = opp.get(SUBSCRIPTION_START_DATE_FIELD)
+    if sub_start:
+        return str(sub_start)[:10]  # "YYYY-MM-DD"
+
+    # Old system fallback: Close Date was the start date
     for field in ['close_date', 'date_won', 'close_at']:
         val = opp.get(field)
         if val:
-            return val[:10]  # "YYYY-MM-DD"
+            return str(val)[:10]
+    return None
+
+
+def get_close_date(opp):
+    """Extract the raw close/signature date (ignoring Subscription Start Date).
+    Used only where we need the actual close date, not the effective start date."""
+    for field in ['close_date', 'date_won', 'close_at']:
+        val = opp.get(field)
+        if val:
+            return str(val)[:10]
     return None
 
 
@@ -154,11 +179,12 @@ def calculate_mrr(opp):
 
 
 def filter_by_date_range(opps, start_date, end_date_exclusive):
-    """Filter opportunities where close date is in [start_date, end_date_exclusive)."""
+    """Filter opportunities where effective start date is in [start_date, end_date_exclusive).
+    Uses Subscription Start Date if available, otherwise falls back to Close Date."""
     filtered = []
     for opp in opps:
-        close_date = get_close_date(opp)
-        if close_date and start_date <= close_date < end_date_exclusive:
+        eff_date = get_effective_date(opp)
+        if eff_date and start_date <= eff_date < end_date_exclusive:
             filtered.append(opp)
     return filtered
 
@@ -205,10 +231,10 @@ def get_recent_deals(opps, count=3):
     """Get the most recently closed deals from the list of opportunities."""
     scored = []
     for opp in opps:
-        close_date = get_close_date(opp)
-        if not close_date:
+        eff_date = get_effective_date(opp)
+        if not eff_date:
             continue
-        updated = opp.get('date_updated', '') or opp.get('date_created', '') or close_date
+        updated = opp.get('date_updated', '') or opp.get('date_created', '') or eff_date
         scored.append((updated, opp))
     scored.sort(key=lambda x: x[0], reverse=True)
     return [opp for _, opp in scored[:count]]
@@ -1746,8 +1772,10 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         if (period === 'annual') return value / 12;
         return value;
     }}
-    function getCloseDate(opp) {{
-        return opp.close_date || opp.date_won || opp.close_at || '';
+    function getEffectiveDate(opp) {{
+        // New system: subscription_start_date takes priority (MRR start date)
+        // Old system fallback: close_date was the start date
+        return opp.effective_date || opp.subscription_start_date || opp.close_date || '';
     }}
 
     // ── Populate month selector ──
@@ -1783,11 +1811,11 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
             monthEnd = year + '-' + String(month + 1).padStart(2, '0') + '-01';
         }}
 
-        // Filter opps for this month
+        // Filter opps for this month by effective start date
         console.log('[RENDER] Range:', monthStart, 'to', monthEnd);
         const monthOpps = ALL_OPPS.filter(opp => {{
-            const cd = getCloseDate(opp).substring(0, 10);
-            return cd >= monthStart && cd < monthEnd;
+            const ed = getEffectiveDate(opp).substring(0, 10);
+            return ed >= monthStart && ed < monthEnd;
         }});
         console.log('[RENDER] Matched', monthOpps.length, 'opps for this month');
 
@@ -1862,8 +1890,8 @@ def generate_html(monthly_mrr, ytd_mrr, monthly_opps, streak_counts, recent_deal
         if (tickerEl) {{
             // Get last 3 deals for this month
             const sorted = [...monthOpps].sort((a, b) => {{
-                const da = (a.date_updated || a.date_created || getCloseDate(a));
-                const db = (b.date_updated || b.date_created || getCloseDate(b));
+                const da = (a.date_updated || a.date_created || getEffectiveDate(a));
+                const db = (b.date_updated || b.date_created || getEffectiveDate(b));
                 return db.localeCompare(da);
             }});
             const last3 = sorted.slice(0, 3);
@@ -2151,7 +2179,18 @@ def main():
             # Streak: deals moved to won status in last 5 days (from Close activity log)
             streak_counts = count_streak(all_opps, days=5)
 
-            # Filter by date
+            # Debug: check if Subscription Start Date field is present in raw API data
+            if all_opps:
+                sample = all_opps[0]
+                has_sub_start = SUBSCRIPTION_START_DATE_FIELD in sample
+                print(f"  [DATE DEBUG] Subscription Start Date field present: {has_sub_start}")
+                if has_sub_start:
+                    print(f"  [DATE DEBUG] Sample value: {sample[SUBSCRIPTION_START_DATE_FIELD]}")
+                # Count how many opps have the field set
+                with_sub = sum(1 for o in all_opps if o.get(SUBSCRIPTION_START_DATE_FIELD))
+                print(f"  [DATE DEBUG] {with_sub}/{len(all_opps)} opps have Subscription Start Date set")
+
+            # Filter by effective date (Subscription Start Date if set, else Close Date)
             monthly_opps = filter_by_date_range(all_opps, month_start, month_end)
             ytd_opps = filter_by_date_range(all_opps, year_start, year_end)
             print(f"  Monthly: {len(monthly_opps)} opps, YTD: {len(ytd_opps)} opps")
@@ -2188,6 +2227,8 @@ def main():
                     'value': opp.get('value', 0) or 0,
                     'value_period': opp.get('value_period', 'monthly'),
                     'close_date': get_close_date(opp) or '',
+                    'subscription_start_date': (opp.get(SUBSCRIPTION_START_DATE_FIELD) or '')[:10] if opp.get(SUBSCRIPTION_START_DATE_FIELD) else '',
+                    'effective_date': get_effective_date(opp) or '',
                     'lead_name': opp.get('lead_name', 'Unknown'),
                     'date_updated': opp.get('date_updated', ''),
                     'date_created': opp.get('date_created', ''),
